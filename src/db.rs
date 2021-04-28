@@ -1,6 +1,7 @@
-use tokio_postgres::{Client, NoTls, Error, Row};
+use tokio_postgres::{Client, NoTls, Error, Row, ToStatement};
 use tokio_postgres::types::ToSql;
 use std::marker::Sync;
+use std::fs::read_to_string;
 
 pub struct DB {
   client: Client,
@@ -21,11 +22,21 @@ impl DB {
     })
   }
 
-  pub async fn execute(&self, sql: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Row>, Error> {
+  pub async fn execute<T>(
+    &self,
+    sql: &T,
+    params: &[&(dyn ToSql + Sync)]
+  ) -> Result<Vec<Row>, Error>
+  where T: ?Sized + ToStatement {
     self.client.query(sql, params).await
   }
 
-  pub async fn execute_many(&self, sql: &[&str], params: &[&[&(dyn ToSql + Sync)]]) -> Result<Vec<Vec<Row>>, Error> {
+  pub async fn execute_many<T>(
+    &self,
+    sql: &[&T],
+    params: &[&[&(dyn ToSql + Sync)]]
+  ) -> Result<Vec<Vec<Row>>, Error>
+  where T: ?Sized + ToStatement {
     let mut results: Vec<Vec<Row>> = Vec::new();
 
     for i in 0..sql.len() {
@@ -34,5 +45,12 @@ impl DB {
     }
 
     Ok(results)
+  }
+
+  pub async fn execute_file(&self, path: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Row>, Error> {
+    let s = read_to_string(path).unwrap();
+    let sql = &s.to_owned()[..];
+
+    self.client.query(sql, params).await
   }
 }
