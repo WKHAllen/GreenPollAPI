@@ -17,11 +17,16 @@ async fn index() -> Result<HttpResponse> {
 async fn main() -> std::io::Result<()> {
     use actix_web::{App, HttpServer};
 
+    let port = std::env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse()
+        .expect("PORT must be a number");
+
     let server = HttpServer::new(|| App::new().service(index))
-        .bind("localhost:3000")?
+        .bind(("0.0.0.0", port))?
         .run();
 
-    println!("Server running at http://localhost:3000/");
+    println!("App running on port {}", port);
 
     server.await
 }
