@@ -1,6 +1,8 @@
 use actix_web::{HttpResponse, Result, get};
 use serde::{Serialize, Deserialize};
 
+mod db;
+
 #[derive(Serialize, Deserialize)]
 struct Message {
     message: String,
