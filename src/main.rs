@@ -1,16 +1,33 @@
-use actix_web::{App, HttpServer, HttpResponse, Result, get};
-use serde::{Serialize, Deserialize};
+use actix_web::{App, HttpServer, HttpResponse, Result, web, get};
 use sqlx::postgres::PgPoolOptions;
+use serde::{Serialize, Deserialize};
+use std::sync::{Mutex, Arc};
 
 #[derive(Serialize, Deserialize)]
 struct Message {
     message: String,
 }
 
+struct MainTable {
+    id: i32,
+    message: String,
+}
+
+struct AppData {
+    pool: sqlx::Pool<sqlx::Postgres>,
+}
+
 #[get("/")]
-async fn index() -> Result<HttpResponse> {
+async fn index(data: web::Data<Arc<Mutex<AppData>>>) -> Result<HttpResponse> {
+    let data = data.lock().unwrap();
+
+    let res = sqlx::query_file_as!(MainTable, "sql/getMessage.sql")
+        .fetch_all(&data.pool)
+        .await
+        .unwrap();
+
     Ok(HttpResponse::Ok().json(Message {
-        message: String::from("Hello, world!")
+        message: res[0].message.clone()
     }))
 }
 
@@ -39,8 +56,15 @@ async fn main() -> std::io::Result<()> {
         .await
         .unwrap();
 
+    // Application data
+    let app_data = Arc::new(Mutex::new(AppData { pool }));
+
     // Create HTTP server
-    let server = HttpServer::new(|| App::new().service(index))
+    let server = HttpServer::new(move || {
+            App::new()
+                .data(app_data.clone())
+                .service(index)
+        })
         .bind(("0.0.0.0", port))?
         .run();
 

@@ -1,0 +1,1 @@
+SELECT * FROM Main LIMIT 1;
