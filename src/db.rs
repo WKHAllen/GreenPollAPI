@@ -1,56 +1,97 @@
-use tokio_postgres::{Client, NoTls, Error, Row, ToStatement};
-use tokio_postgres::types::ToSql;
-use std::marker::Sync;
-use std::fs::read_to_string;
+// use sqlx::postgres::PgPoolOptions;
+// use std::fs::read_to_string;
 
-pub struct DB {
-  client: Client,
-}
+// pub struct DB {
+//     pool: sqlx::Pool<sqlx::Postgres>,
+// }
 
-impl DB {
-  pub async fn new(db_url: &str) -> Result<DB, Error> {
-    let (client, connection) = tokio_postgres::connect(db_url, NoTls).await?;
+// impl DB {
+//     pub async fn new(db_url: &str, max_conns: u32) -> Result<Self, sqlx::Error> {
+//         // let mut builder = SslConnector::builder(SslMethod::tls())?;
+//         // builder.set_verify(SslVerifyMode::NONE);
+//         // let connector = MakeTlsConnector::new(builder.build());
 
-    tokio::spawn(async move {
-      if let Err(e) = connection.await {
-        eprintln!("Connection error: {}", e);
-      }
-    });
+//         // let (client, conn) = connect_tls(db_url.parse()?, connector).await?;
+//         // spawn(conn);
 
-    Ok(DB {
-      client,
-    })
-  }
+//         let pool = PgPoolOptions::new()
+//             .max_connections(max_conns)
+//             .connect(db_url).await?;
 
-  pub async fn execute<T>(
-    &self,
-    sql: &T,
-    params: &[&(dyn ToSql + Sync)]
-  ) -> Result<Vec<Row>, Error>
-  where T: ?Sized + ToStatement {
-    self.client.query(sql, params).await
-  }
+//         Ok(DB {
+//             pool,
+//         })
+//     }
 
-  pub async fn execute_many<T>(
-    &self,
-    sql: &[&T],
-    params: &[&[&(dyn ToSql + Sync)]]
-  ) -> Result<Vec<Vec<Row>>, Error>
-  where T: ?Sized + ToStatement {
-    let mut results: Vec<Vec<Row>> = Vec::new();
+//     pub async fn query<T, U>(
+//         &self,
+//         sql: &str,
+//         params: &[U]
+//     ) -> std::io::Result<Vec<T>> {
+//         sqlx::query_as!(T, sql, ..params)
+//             .fetch_all(&self.pool)
+//             .await?
+//     }
 
-    for i in 0..sql.len() {
-      let res = self.execute(sql[i], params[i]).await?;
-      results.push(res);
-    }
+//     // pub async fn execute_many<T>(
+//     //     &self,
+//     //     sql: &[&T],
+//     //     params: &[&[&(dyn ToSql + Sync)]]
+//     // ) -> Result<Vec<Vec<Row>>, Error>
+//     // where T: ?Sized + ToStatement {
+//     //     let mut results: Vec<Vec<Row>> = Vec::new();
 
-    Ok(results)
-  }
+//     //     for i in 0..sql.len() {
+//     //         let res = self.execute(sql[i], params[i]).await?;
+//     //         results.push(res);
+//     //     }
 
-  pub async fn execute_file(&self, path: &str, params: &[&(dyn ToSql + Sync)]) -> Result<Vec<Row>, Error> {
-    let s = read_to_string(path).unwrap();
-    let sql = &s.to_owned()[..];
+//     //     Ok(results)
+//     // }
 
-    self.client.query(sql, params).await
-  }
-}
+//     pub async fn query_file<T, U>(
+//         &self,
+//         path: &str,
+//         params: &[U]
+//     ) -> std::io::Result<Vec<T>> {
+//         let sql = read_to_string(path)?;
+//         self.query::<T, U>(&sql[..], params).await
+//     }
+
+//     pub async fn query_sql_file<T, U>(
+//         &self,
+//         path: &str,
+//         params: &[U]
+//     ) -> std::io::Result<Vec<T>> {
+//         let file_path = format!("../sql/{}.sql", path);
+//         self.query_file::<T, U>(&file_path[..], params).await
+//     }
+
+//     pub async fn execute<U>(
+//         &self,
+//         sql: &str,
+//         params: &[U]
+//     ) -> std::io::Result<()> {
+//         sqlx::query!(sql, ..params)
+//             .fetch_all(&self.pool)
+//             .await?
+//     }
+
+//     pub async fn execute_file<U>(
+//         &self,
+//         path: &str,
+//         params: &[U]
+//     ) -> std::io::Result<()> {
+//         let sql = read_to_string(path)?;
+//         self.execute::<U>(&sql[..], params).await
+//     }
+
+//     pub async fn execute_sql_file<U>(
+//         &self,
+//         path: &str,
+//         params: &[U]
+//     ) -> std::io::Result<()> {
+//         let file_path = format!("../sql/{}.sql", path);
+//         self.execute_file::<U>(&file_path[..], params).await
+//     }
+// }
