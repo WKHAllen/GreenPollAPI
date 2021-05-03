@@ -8,6 +8,7 @@ struct Message {
     message: String,
 }
 
+#[allow(dead_code)]
 struct MainTable {
     id: i32,
     message: String,
