@@ -41,20 +41,20 @@ async fn main() -> std::io::Result<()> {
 
     // Get database URL
     let db_url = std::env::var("DATABASE_URL")
-        .unwrap();
+        .expect("DATABASE_URL must exist");
 
     // Create database pool
     let pool = PgPoolOptions::new()
         .max_connections(20)
         .connect(&db_url[..])
         .await
-        .unwrap();
+        .expect("Failed to create database pool");
 
     // Initialize database
     sqlx::query_file!("sql/init.sql")
         .fetch_all(&pool)
         .await
-        .unwrap();
+        .expect("Failed to initialize the database");
 
     // Application data
     let app_data = Arc::new(Mutex::new(AppData { pool }));
