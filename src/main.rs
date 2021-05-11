@@ -1,4 +1,4 @@
-use actix_web::{App, HttpServer, HttpResponse, Result, get};
+use actix_web::{App, HttpServer, HttpResponse, Result, web, get};
 use sqlx::postgres::PgPoolOptions;
 use std::sync::{Mutex, Arc};
 
@@ -12,6 +12,10 @@ use util::AppData;
 #[get("/")]
 async fn index() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json("Hello, world!"))
+}
+
+async fn not_found() -> Result<HttpResponse> {
+    Ok(HttpResponse::NotFound().json("404 not found"))
 }
 
 #[actix_web::main]
@@ -47,6 +51,7 @@ async fn main() -> std::io::Result<()> {
                 .data(app_data.clone())
                 .service(index)
                 .service(routes::user_routes::get_user)
+                .default_service(web::route().to(not_found))
         })
         .bind(("0.0.0.0", port))?
         .run();
