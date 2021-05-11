@@ -1,7 +1,7 @@
 use actix_web::{HttpResponse, Result, web, get};
 use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
-use crate::services;
+use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON};
 
 #[derive(Serialize, Deserialize)]
@@ -17,19 +17,19 @@ struct UserJSON {
     join_time: i64,
 }
 
-#[get("/get_user")]
-pub async fn get_user(app_data: web::Data<Arc<Mutex<AppData>>>, query: web::Query<UserQuery>) -> Result<HttpResponse> {
-    let data = app_data.lock().unwrap();
+pub mod user_routes {
+    use super::*;
 
-    match services::user_service::get_user(&data.pool, query.user_id).await {
-        Ok(user) => Ok(HttpResponse::Ok().json(UserJSON {
+    #[get("/get_user")]
+    pub async fn get_user(app_data: web::Data<Arc<Mutex<AppData>>>, query: web::Query<UserQuery>) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let user = generic_http_err!(services::user_service::get_user(&data.pool, query.user_id).await)?;
+        Ok(HttpResponse::Ok().json(UserJSON {
             id: user.id,
             email: user.email,
             verified: user.verified,
             join_time: user.join_time.timestamp()
-        })),
-        Err(e) => Ok(HttpResponse::Ok().json(ErrorJSON {
-            error: format!("{}", e)
-        })),
+        }))
     }
 }

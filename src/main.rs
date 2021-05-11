@@ -46,7 +46,7 @@ async fn main() -> std::io::Result<()> {
             App::new()
                 .data(app_data.clone())
                 .service(index)
-                .service(routes::get_user)
+                .service(routes::user_routes::get_user)
         })
         .bind(("0.0.0.0", port))?
         .run();
