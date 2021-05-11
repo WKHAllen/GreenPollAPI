@@ -9,4 +9,5 @@ edition = "2018"
 [dependencies]
 actix-web = "3"
 serde = "*"
-sqlx = { version = "0.4", features = [ "runtime-actix-native-tls", "postgres" ] }
+sqlx = { version = "0.4", features = [ "runtime-actix-native-tls", "postgres", "time" ] }
+bcrypt = "0.8"

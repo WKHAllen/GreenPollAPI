@@ -3,15 +3,25 @@ use sqlx::postgres::PgPoolOptions;
 use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 
+mod dbinit;
+mod services;
+
 #[derive(Serialize, Deserialize)]
-struct Message {
-    message: String,
+struct ErrorJSON {
+    error: String,
 }
 
-#[allow(dead_code)]
-struct MainTable {
+#[derive(Serialize, Deserialize)]
+struct UserQuery {
+    user_id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct UserJSON {
     id: i32,
-    message: String,
+    email: String,
+    verified: bool,
+    join_time: i64,
 }
 
 struct AppData {
@@ -19,17 +29,25 @@ struct AppData {
 }
 
 #[get("/")]
-async fn index(data: web::Data<Arc<Mutex<AppData>>>) -> Result<HttpResponse> {
-    let data = data.lock().unwrap();
+async fn index() -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok().json("Hello, world!"))
+}
 
-    let res = sqlx::query_file_as!(MainTable, "sql/getMessage.sql")
-        .fetch_all(&data.pool)
-        .await
-        .unwrap();
+#[get("/get_user")]
+async fn get_user(app_data: web::Data<Arc<Mutex<AppData>>>, query: web::Query<UserQuery>) -> Result<HttpResponse> {
+    let data = app_data.lock().unwrap();
 
-    Ok(HttpResponse::Ok().json(Message {
-        message: res[0].message.clone()
-    }))
+    match services::user_service::get_user(&data.pool, query.user_id).await {
+        Ok(user) => Ok(HttpResponse::Ok().json(UserJSON {
+            id: user.id,
+            email: user.email,
+            verified: user.verified,
+            join_time: user.join_time.timestamp()
+        })),
+        Err(e) => Ok(HttpResponse::Ok().json(ErrorJSON {
+            error: format!("{}", e)
+        })),
+    }
 }
 
 #[actix_web::main]
@@ -52,10 +70,9 @@ async fn main() -> std::io::Result<()> {
         .expect("Failed to create database pool");
 
     // Initialize database
-    sqlx::query_file!("sql/init.sql")
-        .fetch_all(&pool)
+    dbinit::init_db(&pool)
         .await
-        .expect("Failed to initialize the database");
+        .expect("Failed to initialize database");
 
     // Application data
     let app_data = Arc::new(Mutex::new(AppData { pool }));
@@ -65,6 +82,7 @@ async fn main() -> std::io::Result<()> {
             App::new()
                 .data(app_data.clone())
                 .service(index)
+                .service(get_user)
         })
         .bind(("0.0.0.0", port))?
         .run();
