@@ -1,53 +1,17 @@
-use actix_web::{App, HttpServer, HttpResponse, Result, web, get};
+use actix_web::{App, HttpServer, HttpResponse, Result, get};
 use sqlx::postgres::PgPoolOptions;
-use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 
+mod util;
 mod dbinit;
+mod routes;
 mod services;
 
-#[derive(Serialize, Deserialize)]
-struct ErrorJSON {
-    error: String,
-}
-
-#[derive(Serialize, Deserialize)]
-struct UserQuery {
-    user_id: i32,
-}
-
-#[derive(Serialize, Deserialize)]
-struct UserJSON {
-    id: i32,
-    email: String,
-    verified: bool,
-    join_time: i64,
-}
-
-struct AppData {
-    pool: sqlx::Pool<sqlx::Postgres>,
-}
+use util::AppData;
 
 #[get("/")]
 async fn index() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json("Hello, world!"))
-}
-
-#[get("/get_user")]
-async fn get_user(app_data: web::Data<Arc<Mutex<AppData>>>, query: web::Query<UserQuery>) -> Result<HttpResponse> {
-    let data = app_data.lock().unwrap();
-
-    match services::user_service::get_user(&data.pool, query.user_id).await {
-        Ok(user) => Ok(HttpResponse::Ok().json(UserJSON {
-            id: user.id,
-            email: user.email,
-            verified: user.verified,
-            join_time: user.join_time.timestamp()
-        })),
-        Err(e) => Ok(HttpResponse::Ok().json(ErrorJSON {
-            error: format!("{}", e)
-        })),
-    }
 }
 
 #[actix_web::main]
@@ -82,7 +46,7 @@ async fn main() -> std::io::Result<()> {
             App::new()
                 .data(app_data.clone())
                 .service(index)
-                .service(get_user)
+                .service(routes::get_user)
         })
         .bind(("0.0.0.0", port))?
         .run();
