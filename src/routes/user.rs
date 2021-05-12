@@ -12,6 +12,7 @@ pub struct UserQuery {
 #[derive(Serialize, Deserialize)]
 struct UserJSON {
     id: i32,
+    username: String,
     email: String,
     verified: bool,
     join_time: i64,
@@ -27,6 +28,7 @@ pub mod user_routes {
         let user = generic_http_err!(services::user_service::get_user(&data.pool, query.user_id).await)?;
         Ok(HttpResponse::Ok().json(UserJSON {
             id: user.id,
+            username: user.username,
             email: user.email,
             verified: user.verified,
             join_time: user.join_time.timestamp()
