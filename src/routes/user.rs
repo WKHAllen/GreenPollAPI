@@ -25,7 +25,7 @@ pub mod user_routes {
     pub async fn get_user(app_data: web::Data<Arc<Mutex<AppData>>>, query: web::Query<UserQuery>) -> Result<HttpResponse> {
         let data = app_data.lock().unwrap();
 
-        let user = generic_http_err!(services::user_service::get_user(&data.pool, query.user_id).await)?;
+        let user = generic_http_err!(services::user_service::get_user(&data.pool, query.user_id).await);
         Ok(HttpResponse::Ok().json(UserJSON {
             id: user.id,
             username: user.username,

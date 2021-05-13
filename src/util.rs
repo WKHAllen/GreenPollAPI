@@ -19,6 +19,16 @@ macro_rules! generic_http_err {
             Err(e) => Err(HttpResponse::Ok().json(ErrorJSON {
                 error: format!("{}", e)
             })),
-        };
+        }?
+    };
+}
+
+#[macro_export]
+macro_rules! generic_service_err {
+    ( $x:expr, $err:literal ) => {
+        match $x {
+            Ok(res) => Ok(res),
+            Err(_) => Err(Error::new(ErrorKind::Other, $err))
+        }?
     };
 }
