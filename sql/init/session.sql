@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS session (
-    id          CHAR(16)  NOT NULL,
+    id          CHAR(16)  NOT NULL DEFAULT SUBSTR(MD5(RANDOM()::TEXT), 0, 16),
     user_id     SERIAL    NOT NULL,
     create_time TIMESTAMP NOT NULL DEFAULT NOW(),
 
