@@ -5,6 +5,7 @@ use bcrypt::{DEFAULT_COST, hash, verify};
 use sqlx::types::time::PrimitiveDateTime;
 use crate::util::DBPool;
 use crate::generic_service_err;
+use crate::services;
 
 pub struct User {
     pub id: i32,
@@ -113,5 +114,26 @@ pub mod user_service {
             "Failed to delete user");
 
         Ok(())
+    }
+
+    pub async fn login(pool: &DBPool, user_id: i32, password: String) -> Result<String> {
+        let user_exists = user_exists(pool, user_id).await?;
+
+        if user_exists {
+            let user = get_user(pool, user_id).await?;
+
+            let password_match = generic_service_err!(
+                verify(password, &user.password[..]),
+                "Failed to verify password hash");
+
+            if password_match {
+                let session_id = services::session_service::create_session(pool, user_id).await?;
+                Ok(session_id)
+            } else {
+                Err(Error::new(ErrorKind::Other, "Invalid login"))
+            }
+        } else {
+            Err(Error::new(ErrorKind::Other, "Invalid login"))
+        }
     }
 }
