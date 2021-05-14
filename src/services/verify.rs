@@ -95,7 +95,7 @@ pub mod verify_service {
         if valid {
             let user = get_user_by_verification(pool, verify_id.clone()).await?;
             delete_verification(pool, verify_id.clone()).await?;
-            services::user_service::set_verified(pool, user.id, true);
+            services::user_service::set_verified(pool, user.id, true).await?;
 
             Ok(())
         } else {
