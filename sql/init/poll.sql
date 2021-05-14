@@ -10,4 +10,5 @@ CREATE TABLE IF NOT EXISTS poll (
     CONSTRAINT fk_poll_user
         FOREIGN KEY (user_id)
             REFERENCES app_user(id)
+                ON DELETE CASCADE
 );

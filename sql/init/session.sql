@@ -8,4 +8,5 @@ CREATE TABLE IF NOT EXISTS session (
     CONSTRAINT fk_session_user
         FOREIGN KEY (user_id)
             REFERENCES app_user(id)
+                ON DELETE CASCADE
 );

@@ -8,4 +8,5 @@ CREATE TABLE IF NOT EXISTS poll_option (
     CONSTRAINT fk_poll_option_poll
         FOREIGN KEY (poll_id)
             REFERENCES poll(id)
+                ON DELETE CASCADE
 );
