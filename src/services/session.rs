@@ -4,6 +4,8 @@ use crate::util::DBPool;
 use crate::generic_service_err;
 use crate::services::User;
 
+const NUM_USER_SESSIONS: i64 = 4;
+
 pub struct Session {
     pub id: String,
     pub user_id: i32,
@@ -18,6 +20,8 @@ pub mod session_service {
             sqlx::query_file_as!(Session, "sql/session/create_session.sql", user_id)
             .fetch_all(pool).await,
             "Failed to create new session");
+
+        delete_old_user_sessions(pool, user_id).await?;
 
         Ok(res.remove(0).id)
     }
@@ -57,6 +61,15 @@ pub mod session_service {
         }
     }
 
+    pub async fn get_user_sessions(pool: &DBPool, user_id: i32) -> Result<Vec<Session>> {
+        let res = generic_service_err!(
+            sqlx::query_file_as!(Session, "sql/session/get_user_sessions.sql", user_id)
+            .fetch_all(pool).await,
+            "Failed to get user sessions");
+
+        Ok(res)
+    }
+
     pub async fn delete_session(pool: &DBPool, session_id: String) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/session/delete_session.sql", session_id)
@@ -71,6 +84,15 @@ pub mod session_service {
             sqlx::query_file!("sql/session/delete_user_sessions.sql", user_id)
             .fetch_all(pool).await,
             "Failed to delete user sessions");
+
+        Ok(())
+    }
+
+    pub async fn delete_old_user_sessions(pool: &DBPool, user_id: i32) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/session/delete_old_user_sessions.sql", user_id, NUM_USER_SESSIONS)
+            .fetch_all(pool).await,
+            "Failed to delete old user sessions");
 
         Ok(())
     }
