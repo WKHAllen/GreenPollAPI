@@ -97,6 +97,15 @@ pub mod user_service {
         Ok(())
     }
 
+    pub async fn set_verified(pool: &DBPool, user_id: i32, verified: bool) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/user/set_verified.sql", verified, user_id)
+            .fetch_all(pool).await,
+            "Failed to set user verified status");
+
+        Ok(())
+    }
+
     pub async fn delete_user(pool: &DBPool, user_id: i32) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/user/delete_user.sql", user_id)
