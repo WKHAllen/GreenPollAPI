@@ -10,7 +10,7 @@ pub struct Session {
     pub create_time: PrimitiveDateTime,
 }
 
-pub mod poll_vote_service {
+pub mod session_service {
     use super::*;
 
     pub async fn create_session(pool: &DBPool, user_id: i32) -> Result<String> {
