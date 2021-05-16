@@ -50,7 +50,9 @@ async fn main() -> std::io::Result<()> {
             App::new()
                 .data(app_data.clone())
                 .service(index)
-                .service(routes::user_routes::get_user)
+                .service(routes::user_routes::get_user_info)
+                .service(routes::user_routes::set_username)
+                .service(routes::user_routes::set_password)
                 .default_service(web::route().to(not_found))
         })
         .bind(("0.0.0.0", port))?
