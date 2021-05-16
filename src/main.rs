@@ -55,6 +55,9 @@ async fn main() -> std::io::Result<()> {
                 .service(routes::user_routes::set_password)
                 .service(routes::poll_routes::create_poll)
                 .service(routes::poll_routes::get_poll_info)
+                .service(routes::poll_routes::set_poll_title)
+                .service(routes::poll_routes::set_poll_description)
+                .service(routes::poll_routes::delete_poll)
                 .default_service(web::route().to(not_found))
         })
         .bind(("0.0.0.0", port))?
