@@ -14,13 +14,13 @@ pub struct PasswordReset {
 pub mod password_reset_service {
     use super::*;
 
-    pub async fn create_password_reset(pool: &DBPool, email: String) -> Result<String> {
+    pub async fn create_password_reset(pool: &DBPool, email: String) -> Result<PasswordReset> {
         let mut res = generic_service_err!(
             sqlx::query_file_as!(PasswordReset, "sql/password_reset/create_password_reset.sql", email)
             .fetch_all(pool).await,
             "Failed to create new password reset record");
 
-        Ok(res.remove(0).id)
+        Ok(res.remove(0))
     }
 
     pub async fn password_reset_exists(pool: &DBPool, password_reset_id: String) -> Result<bool> {

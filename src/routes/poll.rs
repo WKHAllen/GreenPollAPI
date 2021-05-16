@@ -37,12 +37,8 @@ pub mod poll_routes {
 
         let user = get_user_by_session(&data.pool, req).await?;
 
-        let poll_id = generic_http_err!(
-            services::poll_service::create_poll(&data.pool, user.id, query.title.clone(), query.description.clone())
-            .await);
-
         let poll = generic_http_err!(
-            services::poll_service::get_poll(&data.pool, poll_id)
+            services::poll_service::create_poll(&data.pool, user.id, query.title.clone(), query.description.clone())
             .await);
 
         Ok(HttpResponse::Ok().json(PollJSON {

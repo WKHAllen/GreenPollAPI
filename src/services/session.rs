@@ -15,7 +15,7 @@ pub struct Session {
 pub mod session_service {
     use super::*;
 
-    pub async fn create_session(pool: &DBPool, user_id: i32) -> Result<String> {
+    pub async fn create_session(pool: &DBPool, user_id: i32) -> Result<Session> {
         let mut res = generic_service_err!(
             sqlx::query_file_as!(Session, "sql/session/create_session.sql", user_id)
             .fetch_all(pool).await,
@@ -23,7 +23,7 @@ pub mod session_service {
 
         delete_old_user_sessions(pool, user_id).await?;
 
-        Ok(res.remove(0).id)
+        Ok(res.remove(0))
     }
 
     pub async fn session_exists(pool: &DBPool, session_id: String) -> Result<bool> {

@@ -6,6 +6,7 @@ use sqlx::types::time::PrimitiveDateTime;
 use crate::util::DBPool;
 use crate::generic_service_err;
 use crate::services;
+use crate::services::Session;
 
 pub struct User {
     pub id: i32,
@@ -19,17 +20,17 @@ pub struct User {
 pub mod user_service {
     use super::*;
 
-    pub async fn create_user(pool: &DBPool, email: String, password: String) -> Result<i32> {
+    pub async fn create_user(pool: &DBPool, email: String, password: String) -> Result<User> {
         let password_hash = generic_service_err!(
             hash(password, DEFAULT_COST),
             "Failed to hash password");
 
-        let res = generic_service_err!(
+        let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/create_user.sql", email, password_hash)
             .fetch_all(pool).await,
             "Failed to create new user");
 
-        Ok(res[0].id)
+        Ok(res.remove(0))
     }
 
     pub async fn user_exists(pool: &DBPool, user_id: i32) -> Result<bool> {
@@ -116,7 +117,7 @@ pub mod user_service {
         Ok(())
     }
 
-    pub async fn login(pool: &DBPool, user_id: i32, password: String) -> Result<String> {
+    pub async fn login(pool: &DBPool, user_id: i32, password: String) -> Result<Session> {
         let user_exists = user_exists(pool, user_id).await?;
 
         if user_exists {
@@ -127,8 +128,8 @@ pub mod user_service {
                 "Failed to verify password hash");
 
             if password_match {
-                let session_id = services::session_service::create_session(pool, user_id).await?;
-                Ok(session_id)
+                let session = services::session_service::create_session(pool, user_id).await?;
+                Ok(session)
             } else {
                 Err(Error::new(ErrorKind::Other, "Invalid login"))
             }

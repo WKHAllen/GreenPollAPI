@@ -12,13 +12,13 @@ pub struct PollOption {
 pub mod poll_option_service {
     use super::*;
 
-    pub async fn create_poll_option(pool: &DBPool, poll_id: i32, value: String) -> Result<i32> {
-        let res = generic_service_err!(
+    pub async fn create_poll_option(pool: &DBPool, poll_id: i32, value: String) -> Result<PollOption> {
+        let mut res = generic_service_err!(
             sqlx::query_file_as!(PollOption, "sql/poll_option/create_poll_option.sql", poll_id, value)
             .fetch_all(pool).await,
             "Failed to create new poll option");
 
-        Ok(res[0].id)
+        Ok(res.remove(0))
     }
 
     pub async fn poll_option_exists(pool: &DBPool, poll_option_id: i32) -> Result<bool> {
