@@ -15,7 +15,7 @@ pub struct SetPasswordQuery {
 }
 
 #[derive(Serialize, Deserialize)]
-struct UserJSON {
+pub struct UserJSON {
     id: i32,
     username: String,
     email: String,

@@ -33,7 +33,7 @@ pub struct DeletePollQuery {
 }
 
 #[derive(Serialize, Deserialize)]
-struct PollJSON {
+pub struct PollJSON {
     id: i32,
     user_id: i32,
     title: String,
