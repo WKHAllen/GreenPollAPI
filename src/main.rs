@@ -63,6 +63,9 @@ async fn main() -> std::io::Result<()> {
                 .service(routes::poll_option_routes::set_poll_option_value)
                 .service(routes::poll_option_routes::get_poll_option_poll)
                 .service(routes::poll_option_routes::delete_poll_option)
+                .service(routes::poll_vote_routes::poll_vote)
+                .service(routes::poll_vote_routes::poll_unvote)
+                .service(routes::poll_vote_routes::get_poll_vote_poll)
                 .default_service(web::route().to(not_found))
         })
         .bind(("0.0.0.0", port))?
