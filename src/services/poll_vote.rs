@@ -63,6 +63,8 @@ pub mod poll_vote_service {
     pub async fn vote(pool: &DBPool, user_id: i32, poll_option_id: i32) -> Result<PollVote> {
         let poll = services::poll_option_service::get_poll_option_poll(pool, poll_option_id).await?;
 
+        unvote(pool, user_id, poll.id).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(PollVote, "sql/poll_vote/vote.sql", user_id, poll.id, poll_option_id)
             .fetch_all(pool).await,
@@ -74,6 +76,15 @@ pub mod poll_vote_service {
     pub async fn unvote(pool: &DBPool, user_id: i32, poll_id: i32) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/poll_vote/unvote.sql", user_id, poll_id)
+            .fetch_all(pool).await,
+            "Failed to remove vote from poll");
+
+        Ok(())
+    }
+
+    pub async fn unvote_by_poll_option_id(pool: &DBPool, user_id: i32, poll_option_id: i32) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/poll_vote/unvote_by_poll_option_id.sql", user_id, poll_option_id)
             .fetch_all(pool).await,
             "Failed to remove vote from poll");
 
