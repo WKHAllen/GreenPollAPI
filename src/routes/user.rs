@@ -16,10 +16,10 @@ pub struct SetPasswordQuery {
 
 #[derive(Serialize, Deserialize)]
 pub struct UserJSON {
-    id: i32,
-    username: String,
-    email: String,
-    join_time: i64,
+    pub id: i32,
+    pub username: String,
+    pub email: String,
+    pub join_time: i64,
 }
 
 pub mod user_routes {

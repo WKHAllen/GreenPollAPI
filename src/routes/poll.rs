@@ -3,6 +3,7 @@ use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, error_json, get_user_by_session};
+use crate::routes::{PollOptionJSON, PollVoteJSON};
 
 #[derive(Serialize, Deserialize)]
 pub struct CreatePollQuery {
@@ -12,6 +13,16 @@ pub struct CreatePollQuery {
 
 #[derive(Serialize, Deserialize)]
 pub struct GetPollQuery {
+    poll_id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GetPollOptionsQuery {
+    poll_id: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GetPollVotesQuery {
     poll_id: i32,
 }
 
@@ -34,11 +45,11 @@ pub struct DeletePollQuery {
 
 #[derive(Serialize, Deserialize)]
 pub struct PollJSON {
-    id: i32,
-    user_id: i32,
-    title: String,
-    description: String,
-    create_time: i64,
+    pub id: i32,
+    pub user_id: i32,
+    pub title: String,
+    pub description: String,
+    pub create_time: i64,
 }
 
 pub mod poll_routes {
@@ -85,6 +96,48 @@ pub mod poll_routes {
             description: poll.description,
             create_time: poll.create_time.timestamp()
         }))
+    }
+
+    #[get("/get_poll_options")]
+    pub async fn get_poll_options(
+        query: web::Query<GetPollOptionsQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let poll_options = generic_http_err!(
+            services::poll_service::get_poll_options(&data.pool, query.poll_id)
+            .await);
+
+        let options: Vec<PollOptionJSON> = poll_options.iter().map(|option| PollOptionJSON {
+            id: option.id,
+            poll_id: option.poll_id,
+            value: option.value.clone()
+        }).collect();
+
+        Ok(HttpResponse::Ok().json(options))
+    }
+
+    #[get("/get_poll_votes")]
+    pub async fn get_poll_votes(
+        query: web::Query<GetPollVotesQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let poll_votes = generic_http_err!(
+            services::poll_service::get_poll_votes(&data.pool, query.poll_id)
+            .await);
+
+        let votes: Vec<PollVoteJSON> = poll_votes.iter().map(|vote| PollVoteJSON {
+            id: vote.id,
+            user_id: vote.user_id,
+            poll_id: vote.poll_id,
+            poll_option_id: vote.poll_option_id,
+            vote_time: vote.vote_time.timestamp()
+        }).collect();
+
+        Ok(HttpResponse::Ok().json(votes))
     }
 
     #[get("/set_poll_title")]

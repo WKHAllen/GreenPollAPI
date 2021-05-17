@@ -22,11 +22,11 @@ pub struct GetPollVotePollQuery {
 
 #[derive(Serialize, Deserialize)]
 pub struct PollVoteJSON {
-    id: i32,
-    user_id: i32,
-    poll_id: i32,
-    poll_option_id: i32,
-    vote_time: i64,
+    pub id: i32,
+    pub user_id: i32,
+    pub poll_id: i32,
+    pub poll_option_id: i32,
+    pub vote_time: i64,
 }
 
 pub mod poll_vote_routes {

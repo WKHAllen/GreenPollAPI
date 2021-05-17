@@ -34,9 +34,9 @@ pub struct DeletePollOptionQuery {
 
 #[derive(Serialize, Deserialize)]
 pub struct PollOptionJSON {
-    id: i32,
-    poll_id: i32,
-    value: String,
+    pub id: i32,
+    pub poll_id: i32,
+    pub value: String,
 }
 
 pub mod poll_option_routes {
