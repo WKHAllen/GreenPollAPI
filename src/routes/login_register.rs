@@ -39,9 +39,9 @@ pub mod login_register_routes {
             .await);
 
         match emailer::send_formatted_email(
-            user.email.clone(), 
+            user.email.clone(),
             "GreenPoll - Verify Account".to_string(),
-            "verify".to_string(), 
+            "verify".to_string(),
             [("verify_id", &verification.id[..])].iter().cloned().collect()
         ) {
             Ok(_) => Ok(()),
