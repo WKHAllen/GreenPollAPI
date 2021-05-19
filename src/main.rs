@@ -4,6 +4,7 @@ use std::sync::{Mutex, Arc};
 
 mod util;
 mod dbinit;
+mod emailer;
 mod routes;
 mod services;
 
