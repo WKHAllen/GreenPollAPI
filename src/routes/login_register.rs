@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use std::io::{Error, ErrorKind};
 use crate::{services, generic_http_err};
-use crate::util::{AppData, SuccessJSON, ErrorJSON, success_json, error_json, get_user_by_session};
+use crate::util::{AppData, SuccessJSON, ErrorJSON, success_json, get_user_by_session};
 use crate::emailer;
 
 #[derive(Serialize, Deserialize)]

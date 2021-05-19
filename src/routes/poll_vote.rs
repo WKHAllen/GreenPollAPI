@@ -2,7 +2,7 @@ use actix_web::{HttpRequest, HttpResponse, Result, web, get};
 use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
-use crate::util::{AppData, ErrorJSON, success_json, error_json, get_user_by_session};
+use crate::util::{AppData, ErrorJSON, success_json, get_user_by_session};
 use crate::routes::PollJSON;
 
 #[derive(Serialize, Deserialize)]
@@ -65,7 +65,7 @@ pub mod poll_vote_routes {
 
         let user = get_user_by_session(&data.pool, req).await?;
 
-        let poll_option = generic_http_err!(
+        generic_http_err!(
             services::poll_vote_service::unvote(&data.pool, user.id, query.poll_id)
             .await);
 
