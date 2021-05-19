@@ -15,12 +15,20 @@ pub mod verify_service {
     use super::*;
 
     pub async fn create_verification(pool: &DBPool, email: String) -> Result<Verify> {
-        let mut res = generic_service_err!(
-            sqlx::query_file_as!(Verify, "sql/verify/create_verification.sql", email)
-            .fetch_all(pool).await,
-            "Failed to create new verification record");
+        let exists = verification_exists_for_email(pool, email.clone()).await?;
 
-        Ok(res.remove(0))
+        if !exists {
+            let mut res = generic_service_err!(
+                sqlx::query_file_as!(Verify, "sql/verify/create_verification.sql", email.clone())
+                .fetch_all(pool).await,
+                "Failed to create new verification record");
+
+            Ok(res.remove(0))
+        } else {
+            let verification = get_verification_for_email(pool, email.clone()).await?;
+
+            Ok(verification)
+        }
     }
 
     pub async fn verification_exists(pool: &DBPool, verify_id: String) -> Result<bool> {
