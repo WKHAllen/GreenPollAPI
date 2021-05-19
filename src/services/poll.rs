@@ -1,7 +1,7 @@
 use std::io::{Error, ErrorKind, Result};
 use sqlx::types::time::PrimitiveDateTime;
 use crate::util::DBPool;
-use crate::generic_service_err;
+use crate::{generic_service_err, generic_err};
 use crate::services::{PollOption, PollVote};
 
 pub struct Poll {
@@ -16,12 +16,18 @@ pub mod poll_service {
     use super::*;
 
     pub async fn create_poll(pool: &DBPool, user_id: i32, title: String, description: String) -> Result<Poll> {
-        let mut res = generic_service_err!(
-            sqlx::query_file_as!(Poll, "sql/poll/create_poll.sql", user_id, title, description)
-            .fetch_all(pool).await,
-            "Failed to create new poll");
+        if title.len() < 1 || title.len() > 255 {
+            generic_err!("Title must be between 1 and 255 characters")
+        } else if description.len() > 1023 {
+            generic_err!("Description must be no more than 1023 characters")
+        } else {
+            let mut res = generic_service_err!(
+                sqlx::query_file_as!(Poll, "sql/poll/create_poll.sql", user_id, title, description)
+                .fetch_all(pool).await,
+                "Failed to create new poll");
 
-        Ok(res.remove(0))
+            Ok(res.remove(0))
+        }
     }
 
     pub async fn poll_exists(pool: &DBPool, poll_id: i32) -> Result<bool> {
@@ -65,21 +71,29 @@ pub mod poll_service {
     }
 
     pub async fn set_title(pool: &DBPool, poll_id: i32, title: String) -> Result<()> {
-        generic_service_err!(
-            sqlx::query_file!("sql/poll/set_title.sql", title, poll_id)
-            .fetch_all(pool).await,
-            "Failed to set poll title");
+        if title.len() < 1 || title.len() > 255 {
+            generic_err!("Title must be between 1 and 255 characters")
+        } else {
+            generic_service_err!(
+                sqlx::query_file!("sql/poll/set_title.sql", title, poll_id)
+                .fetch_all(pool).await,
+                "Failed to set poll title");
 
-        Ok(())
+            Ok(())
+        }
     }
 
     pub async fn set_description(pool: &DBPool, poll_id: i32, description: String) -> Result<()> {
-        generic_service_err!(
-            sqlx::query_file!("sql/poll/set_description.sql", description, poll_id)
-            .fetch_all(pool).await,
-            "Failed to set poll description");
+        if description.len() > 1023 {
+            generic_err!("Description must be no more than 1023 characters")
+        } else {
+            generic_service_err!(
+                sqlx::query_file!("sql/poll/set_description.sql", description, poll_id)
+                .fetch_all(pool).await,
+                "Failed to set poll description");
 
-        Ok(())
+            Ok(())
+        }
     }
 
     pub async fn delete_poll(pool: &DBPool, poll_id: i32) -> Result<()> {

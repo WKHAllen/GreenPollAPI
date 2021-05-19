@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind, Result};
 use crate::util::DBPool;
-use crate::generic_service_err;
+use crate::{generic_service_err, generic_err};
 use crate::services;
 use crate::services::Poll;
 
@@ -18,15 +18,17 @@ pub mod poll_option_service {
     pub async fn create_poll_option(pool: &DBPool, poll_id: i32, value: String) -> Result<PollOption> {
         let num_poll_options = get_num_poll_options(pool, poll_id).await?;
 
-        if num_poll_options < NUM_POLL_OPTIONS {
+        if num_poll_options >= NUM_POLL_OPTIONS {
+            generic_err!("Maximum number of poll options has been reached")
+        } else if value.len() < 1 || value.len() > 255 {
+            generic_err!("Option value must be between 1 and 255 characters")
+        } else {
             let mut res = generic_service_err!(
                 sqlx::query_file_as!(PollOption, "sql/poll_option/create_poll_option.sql", poll_id, value)
                 .fetch_all(pool).await,
                 "Failed to create new poll option");
 
             Ok(res.remove(0))
-        } else {
-            Err(Error::new(ErrorKind::Other, "Maximum number of poll options has been reached"))
         }
     }
 
@@ -62,12 +64,16 @@ pub mod poll_option_service {
     }
 
     pub async fn set_poll_option_value(pool: &DBPool, poll_option_id: i32, value: String) -> Result<()> {
-        generic_service_err!(
-            sqlx::query_file!("sql/poll_option/set_poll_option_value.sql", value, poll_option_id)
-            .fetch_all(pool).await,
-            "Failed to set poll option value");
+        if value.len() < 1 || value.len() > 255 {
+            generic_err!("Option value must be between 1 and 255 characters")
+        } else {
+            generic_service_err!(
+                sqlx::query_file!("sql/poll_option/set_poll_option_value.sql", value, poll_option_id)
+                .fetch_all(pool).await,
+                "Failed to set poll option value");
 
-        Ok(())
+            Ok(())
+        }
     }
 
     pub async fn get_num_poll_options(pool: &DBPool, poll_id: i32) -> Result<usize> {
