@@ -20,13 +20,13 @@ pub struct User {
 pub mod user_service {
     use super::*;
 
-    pub async fn create_user(pool: &DBPool, email: String, password: String) -> Result<User> {
+    pub async fn create_user(pool: &DBPool, username: String, email: String, password: String) -> Result<User> {
         let password_hash = generic_service_err!(
             hash(password, DEFAULT_COST),
             "Failed to hash password");
 
         let mut res = generic_service_err!(
-            sqlx::query_file_as!(User, "sql/user/create_user.sql", email, password_hash)
+            sqlx::query_file_as!(User, "sql/user/create_user.sql", username, email, password_hash)
             .fetch_all(pool).await,
             "Failed to create new user");
 

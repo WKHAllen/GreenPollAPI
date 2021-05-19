@@ -1,0 +1,10 @@
+Hello, welcome to GreenPoll!
+
+All you need to do is to confirm your email address. You can do this by clicking the link below.
+
+{url}/{verify_id}
+
+If you did not register for GreenPoll, or you have already verified your account, please disregard this email, and do not click on the above link.
+
+Sincerely,
+The GreenPoll Dev Team
