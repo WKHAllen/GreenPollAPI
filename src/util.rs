@@ -41,6 +41,13 @@ macro_rules! generic_service_err {
     };
 }
 
+#[macro_export]
+macro_rules! generic_err {
+    ( $err:literal ) => {
+        Err(Error::new(ErrorKind::Other, $err))
+    };
+}
+
 pub fn success_json() -> HttpResponse {
     HttpResponse::Ok().json(SuccessJSON {
         success: true

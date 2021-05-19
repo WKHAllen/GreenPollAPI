@@ -4,7 +4,7 @@ use std::io::{Error, ErrorKind, Result};
 use bcrypt::{DEFAULT_COST, hash, verify};
 use sqlx::types::time::PrimitiveDateTime;
 use crate::util::DBPool;
-use crate::generic_service_err;
+use crate::{generic_service_err, generic_err};
 use crate::services;
 use crate::services::Session;
 
@@ -21,16 +21,31 @@ pub mod user_service {
     use super::*;
 
     pub async fn create_user(pool: &DBPool, username: String, email: String, password: String) -> Result<User> {
-        let password_hash = generic_service_err!(
-            hash(password, DEFAULT_COST),
-            "Failed to hash password");
+        let username_exists = user_exists_for_username(pool, username.clone()).await?;
+        let email_exists = user_exists_for_email(pool, email.clone()).await?;
 
-        let mut res = generic_service_err!(
-            sqlx::query_file_as!(User, "sql/user/create_user.sql", username, email, password_hash)
-            .fetch_all(pool).await,
-            "Failed to create new user");
+        if username_exists {
+            generic_err!("Username is in use")
+        } else if email_exists {
+            generic_err!("Email is in use")
+        } else if username.len() < 3 || username.len() > 63 {
+            generic_err!("Username must be between 3 and 63 characters")
+        } else if email.len() < 5 || email.len() > 63 {
+            generic_err!("Email must be between 5 and 63 characters")
+        } else if password.len() < 8 || password.len() > 255 {
+            generic_err!("Password must be at least 8 characters")
+        } else {
+            let password_hash = generic_service_err!(
+                hash(password, DEFAULT_COST),
+                "Failed to hash password");
 
-        Ok(res.remove(0))
+            let mut res = generic_service_err!(
+                sqlx::query_file_as!(User, "sql/user/create_user.sql", username.clone(), email.clone(), password_hash)
+                .fetch_all(pool).await,
+                "Failed to create new user");
+
+            Ok(res.remove(0))
+        }
     }
 
     pub async fn user_exists(pool: &DBPool, user_id: i32) -> Result<bool> {
@@ -38,6 +53,24 @@ pub mod user_service {
             sqlx::query_file_as!(User, "sql/user/get_user.sql", user_id)
             .fetch_all(pool).await,
             "Failed to check if user exists");
+
+        Ok(res.len() == 1)
+    }
+
+    pub async fn user_exists_for_username(pool: &DBPool, username: String) -> Result<bool> {
+        let res = generic_service_err!(
+            sqlx::query_file_as!(User, "sql/user/get_user_by_username.sql", username)
+            .fetch_all(pool).await,
+            "Failed to check if user exists for username");
+
+        Ok(res.len() == 1)
+    }
+
+    pub async fn user_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
+        let res = generic_service_err!(
+            sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
+            .fetch_all(pool).await,
+            "Failed to check if user exists for email");
 
         Ok(res.len() == 1)
     }
@@ -68,35 +101,68 @@ pub mod user_service {
         }
     }
 
-    pub async fn set_username(pool: &DBPool, user_id: i32, username: String) -> Result<()> {
-        generic_service_err!(
-            sqlx::query_file!("sql/user/set_username.sql", username, user_id)
+    pub async fn get_user_by_email(pool: &DBPool, email: String) -> Result<User> {
+        let mut res = generic_service_err!(
+            sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
             .fetch_all(pool).await,
-            "Failed to set username");
+            "Failed to fetch user by email");
 
-        Ok(())
+        if res.len() == 1 {
+            Ok(res.remove(0))
+        } else {
+            Err(Error::new(ErrorKind::Other, "User does not exist"))
+        }
+    }
+
+    pub async fn set_username(pool: &DBPool, user_id: i32, username: String) -> Result<()> {
+        let username_exists = user_exists_for_username(pool, username.clone()).await?;
+
+        if username_exists {
+            generic_err!("Username is in use")
+        } else if username.len() < 3 || username.len() > 63 {
+            generic_err!("Username must be between 3 and 63 characters")
+        } else {
+            generic_service_err!(
+                sqlx::query_file!("sql/user/set_username.sql", username.clone(), user_id)
+                .fetch_all(pool).await,
+                "Failed to set username");
+
+            Ok(())
+        }
     }
 
     pub async fn set_email(pool: &DBPool, user_id: i32, email: String) -> Result<()> {
-        generic_service_err!(
-            sqlx::query_file!("sql/user/set_email.sql", email, user_id)
-            .fetch_all(pool).await,
-            "Failed to set user email");
+        let email_exists = user_exists_for_email(pool, email.clone()).await?;
 
-        Ok(())
+        if email_exists {
+            generic_err!("Email is in use")
+        } else if email.len() < 5 || email.len() > 63 {
+            generic_err!("Email must be between 5 and 63 characters")
+        } else {
+            generic_service_err!(
+                sqlx::query_file!("sql/user/set_email.sql", email.clone(), user_id)
+                .fetch_all(pool).await,
+                "Failed to set user email");
+
+            Ok(())
+        }
     }
 
     pub async fn set_password(pool: &DBPool, user_id: i32, password: String) -> Result<()> {
-        let password_hash = generic_service_err!(
-            hash(password, DEFAULT_COST),
-            "Failed to hash password");
+        if password.len() < 8 || password.len() > 255 {
+            generic_err!("Password must be at least 8 characters")
+        } else {
+            let password_hash = generic_service_err!(
+                hash(password, DEFAULT_COST),
+                "Failed to hash password");
 
-        generic_service_err!(
-            sqlx::query_file!("sql/user/set_password.sql", password_hash, user_id)
-            .fetch_all(pool).await,
-            "Failed to set user password");
+            generic_service_err!(
+                sqlx::query_file!("sql/user/set_password.sql", password_hash, user_id)
+                .fetch_all(pool).await,
+                "Failed to set user password");
 
-        Ok(())
+            Ok(())
+        }
     }
 
     pub async fn set_verified(pool: &DBPool, user_id: i32, verified: bool) -> Result<()> {
