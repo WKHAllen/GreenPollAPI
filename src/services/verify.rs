@@ -15,6 +15,8 @@ pub mod verify_service {
     use super::*;
 
     pub async fn create_verification(pool: &DBPool, email: String) -> Result<Verify> {
+        prune_verifications(pool).await?;
+
         let exists = verification_exists_for_email(pool, email.clone()).await?;
 
         if !exists {
@@ -32,6 +34,8 @@ pub mod verify_service {
     }
 
     pub async fn verification_exists(pool: &DBPool, verify_id: String) -> Result<bool> {
+        prune_verifications(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(Verify, "sql/verify/get_verification.sql", verify_id)
             .fetch_all(pool).await,
@@ -41,6 +45,8 @@ pub mod verify_service {
     }
 
     pub async fn verification_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
+        prune_verifications(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(Verify, "sql/verify/get_verification_by_email.sql", email)
             .fetch_all(pool).await,
@@ -50,6 +56,8 @@ pub mod verify_service {
     }
 
     pub async fn get_verification(pool: &DBPool, verify_id: String) -> Result<Verify> {
+        prune_verifications(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(Verify, "sql/verify/get_verification.sql", verify_id)
             .fetch_all(pool).await,
@@ -63,6 +71,8 @@ pub mod verify_service {
     }
 
     pub async fn get_verification_for_email(pool: &DBPool, email: String) -> Result<Verify> {
+        prune_verifications(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(Verify, "sql/verify/get_verification_by_email.sql", email)
             .fetch_all(pool).await,
@@ -76,6 +86,8 @@ pub mod verify_service {
     }
 
     pub async fn get_user_by_verification(pool: &DBPool, verify_id: String) -> Result<User> {
+        prune_verifications(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/verify/get_user_by_verify_id.sql", verify_id)
             .fetch_all(pool).await,
@@ -89,6 +101,8 @@ pub mod verify_service {
     }
 
     pub async fn delete_verification(pool: &DBPool, verify_id: String) -> Result<()> {
+        prune_verifications(pool).await?;
+
         generic_service_err!(
             sqlx::query_file!("sql/verify/delete_verification.sql", verify_id)
             .fetch_all(pool).await,
@@ -98,6 +112,8 @@ pub mod verify_service {
     }
 
     pub async fn verify_user(pool: &DBPool, verify_id: String) -> Result<()> {
+        prune_verifications(pool).await?;
+
         let valid = verification_exists(pool, verify_id.clone()).await?;
 
         if valid {
@@ -109,5 +125,14 @@ pub mod verify_service {
         } else {
             Err(Error::new(ErrorKind::Other, "Invalid verify ID"))
         }
+    }
+
+    pub async fn prune_verifications(pool: &DBPool) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/verify/prune_verifications.sql")
+            .fetch_all(pool).await,
+            "Failed to prune verification records");
+
+        Ok(())
     }
 }

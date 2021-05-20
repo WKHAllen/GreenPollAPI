@@ -1,0 +1,1 @@
+DELETE FROM verify WHERE EXTRACT(EPOCH FROM NOW() - create_time) >= 3600;

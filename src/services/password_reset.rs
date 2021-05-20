@@ -15,6 +15,8 @@ pub mod password_reset_service {
     use super::*;
 
     pub async fn create_password_reset(pool: &DBPool, email: String) -> Result<PasswordReset> {
+        prune_password_resets(pool).await?;
+
         let exists = password_reset_exists_for_email(pool, email.clone()).await?;
 
         if !exists {
@@ -32,6 +34,8 @@ pub mod password_reset_service {
     }
 
     pub async fn password_reset_exists(pool: &DBPool, password_reset_id: String) -> Result<bool> {
+        prune_password_resets(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(PasswordReset, "sql/password_reset/get_password_reset.sql", password_reset_id)
             .fetch_all(pool).await,
@@ -41,6 +45,8 @@ pub mod password_reset_service {
     }
 
     pub async fn password_reset_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
+        prune_password_resets(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(PasswordReset, "sql/password_reset/get_password_reset_by_email.sql", email)
             .fetch_all(pool).await,
@@ -50,6 +56,8 @@ pub mod password_reset_service {
     }
 
     pub async fn get_password_reset(pool: &DBPool, password_reset_id: String) -> Result<PasswordReset> {
+        prune_password_resets(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(PasswordReset, "sql/password_reset/get_password_reset.sql", password_reset_id)
             .fetch_all(pool).await,
@@ -63,6 +71,8 @@ pub mod password_reset_service {
     }
 
     pub async fn get_password_reset_for_email(pool: &DBPool, email: String) -> Result<PasswordReset> {
+        prune_password_resets(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(PasswordReset, "sql/password_reset/get_password_reset_by_email.sql", email)
             .fetch_all(pool).await,
@@ -76,6 +86,8 @@ pub mod password_reset_service {
     }
 
     pub async fn get_user_by_password_reset(pool: &DBPool, password_reset_id: String) -> Result<User> {
+        prune_password_resets(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/password_reset/get_user_by_password_reset_id.sql", password_reset_id)
             .fetch_all(pool).await,
@@ -89,6 +101,8 @@ pub mod password_reset_service {
     }
 
     pub async fn delete_password_reset(pool: &DBPool, password_reset_id: String) -> Result<()> {
+        prune_password_resets(pool).await?;
+
         generic_service_err!(
             sqlx::query_file!("sql/password_reset/delete_password_reset.sql", password_reset_id)
             .fetch_all(pool).await,
@@ -98,6 +112,8 @@ pub mod password_reset_service {
     }
 
     pub async fn reset_password(pool: &DBPool, password_reset_id: String, new_password: String) -> Result<()> {
+        prune_password_resets(pool).await?;
+
         let valid = password_reset_exists(pool, password_reset_id.clone()).await?;
 
         if valid {
@@ -109,5 +125,14 @@ pub mod password_reset_service {
         } else {
             Err(Error::new(ErrorKind::Other, "Invalid password reset ID"))
         }
+    }
+
+    pub async fn prune_password_resets(pool: &DBPool) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/password_reset/prune_password_resets.sql")
+            .fetch_all(pool).await,
+            "Failed to prune password reset records");
+
+        Ok(())
     }
 }
