@@ -4,14 +4,17 @@ use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json};
 
+/// Query parameters for account verification
 #[derive(Serialize, Deserialize)]
 pub struct VerifyAccountQuery {
     verify_id: String,
 }
 
+/// The verification routes
 pub mod verify_routes {
     use super::*;
 
+    /// Verifies a user's account
     #[get("/verify_account")]
     pub async fn verify_account(
         query: web::Query<VerifyAccountQuery>,

@@ -5,44 +5,52 @@ use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, error_json, get_user_by_session};
 use crate::routes::{PollOptionJSON, PollVoteJSON};
 
+/// Query parameters for creating a poll
 #[derive(Serialize, Deserialize)]
 pub struct CreatePollQuery {
     title: String,
     description: String,
 }
 
+/// Query parameters for getting a poll
 #[derive(Serialize, Deserialize)]
 pub struct GetPollQuery {
     poll_id: i32,
 }
 
+/// Query parameters for getting all poll options associated with a poll
 #[derive(Serialize, Deserialize)]
 pub struct GetPollOptionsQuery {
     poll_id: i32,
 }
 
+/// Query parameters for getting all poll votes associated with a poll
 #[derive(Serialize, Deserialize)]
 pub struct GetPollVotesQuery {
     poll_id: i32,
 }
 
+/// Query parameters for setting a poll's title
 #[derive(Serialize, Deserialize)]
 pub struct SetTitleQuery {
     poll_id: i32,
     title: String,
 }
 
+/// Query parameters for setting a poll's description
 #[derive(Serialize, Deserialize)]
 pub struct SetDescriptionQuery {
     poll_id: i32,
     title: String,
 }
 
+/// Query parameters for deleting a poll
 #[derive(Serialize, Deserialize)]
 pub struct DeletePollQuery {
     poll_id: i32,
 }
 
+/// JSON representation of a poll
 #[derive(Serialize, Deserialize)]
 pub struct PollJSON {
     pub id: i32,
@@ -52,9 +60,11 @@ pub struct PollJSON {
     pub create_time: i64,
 }
 
+/// The poll routes
 pub mod poll_routes {
     use super::*;
 
+    /// Creates a poll and returns the resulting record
     #[get("/create_poll")]
     pub async fn create_poll(
         req: HttpRequest,
@@ -78,6 +88,7 @@ pub mod poll_routes {
         }))
     }
 
+    /// Returns the poll details
     #[get("/get_poll_info")]
     pub async fn get_poll_info(
         query: web::Query<GetPollQuery>,
@@ -98,6 +109,7 @@ pub mod poll_routes {
         }))
     }
 
+    /// Returns all poll options associated with a poll
     #[get("/get_poll_options")]
     pub async fn get_poll_options(
         query: web::Query<GetPollOptionsQuery>,
@@ -118,6 +130,7 @@ pub mod poll_routes {
         Ok(HttpResponse::Ok().json(options))
     }
 
+    /// Returns all poll votes associated with a poll
     #[get("/get_poll_votes")]
     pub async fn get_poll_votes(
         query: web::Query<GetPollVotesQuery>,
@@ -140,6 +153,7 @@ pub mod poll_routes {
         Ok(HttpResponse::Ok().json(votes))
     }
 
+    /// Sets a poll's title
     #[get("/set_poll_title")]
     pub async fn set_poll_title(
         req: HttpRequest,
@@ -164,6 +178,7 @@ pub mod poll_routes {
         }
     }
 
+    /// Sets a poll's description
     #[get("/set_poll_description")]
     pub async fn set_poll_description(
         req: HttpRequest,
@@ -188,6 +203,7 @@ pub mod poll_routes {
         }
     }
 
+    /// Deletes a poll
     #[get("/delete_poll")]
     pub async fn delete_poll(
         req: HttpRequest,

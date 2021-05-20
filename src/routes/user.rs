@@ -4,16 +4,19 @@ use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, get_user_by_session};
 
+/// Query parameters for setting a user's username
 #[derive(Serialize, Deserialize)]
 pub struct SetUsernameQuery {
     new_username: String,
 }
 
+/// Query parameters for setting a user's password
 #[derive(Serialize, Deserialize)]
 pub struct SetPasswordQuery {
     new_password: String,
 }
 
+/// JSON representation of a user
 #[derive(Serialize, Deserialize)]
 pub struct UserJSON {
     pub id: i32,
@@ -22,9 +25,11 @@ pub struct UserJSON {
     pub join_time: i64,
 }
 
+/// The user routes
 pub mod user_routes {
     use super::*;
 
+    /// Returns a user's details
     #[get("/get_user_info")]
     pub async fn get_user_info(
         req: HttpRequest,
@@ -42,6 +47,7 @@ pub mod user_routes {
         }))
     }
 
+    /// Sets a user's username
     #[get("/set_username")]
     pub async fn set_username(
         req: HttpRequest,
@@ -59,6 +65,7 @@ pub mod user_routes {
         Ok(success_json())
     }
 
+    /// Sets a user's password
     #[get("/set_password")]
     pub async fn set_password(
         req: HttpRequest,

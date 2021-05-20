@@ -6,20 +6,24 @@ use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json};
 use crate::emailer;
 
+/// Query parameters for requesting a password reset
 #[derive(Serialize, Deserialize)]
 pub struct RequestPasswordResetQuery {
     email: String,
 }
 
+/// Query parameters for resetting a password
 #[derive(Serialize, Deserialize)]
 pub struct ResetPasswordQuery {
     reset_id: String,
     new_password: String,
 }
 
+/// The password reset routes
 pub mod password_reset_routes {
     use super::*;
 
+    /// Requests a password reset
     #[get("/request_password_reset")]
     pub async fn request_password_reset(
         query: web::Query<RequestPasswordResetQuery>,
@@ -44,6 +48,7 @@ pub mod password_reset_routes {
         Ok(success_json())
     }
 
+    /// Resets a password
     #[get("/reset_password")]
     pub async fn reset_password(
         query: web::Query<ResetPasswordQuery>,

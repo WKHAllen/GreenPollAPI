@@ -7,6 +7,7 @@ use crate::{services, generic_http_err};
 use crate::util::{AppData, SuccessJSON, ErrorJSON, success_json, get_user_by_session};
 use crate::emailer;
 
+/// Query parameters for registration
 #[derive(Serialize, Deserialize)]
 pub struct RegisterQuery {
     username: String,
@@ -14,15 +15,18 @@ pub struct RegisterQuery {
     password: String,
 }
 
+/// Query parameters for logging in
 #[derive(Serialize, Deserialize)]
 pub struct LoginQuery {
     email: String,
     password: String,
 }
 
+/// The login and registration routes
 pub mod login_register_routes {
     use super::*;
 
+    /// Registers an account
     #[get("/register")]
     pub async fn register(
         query: web::Query<RegisterQuery>,
@@ -51,6 +55,7 @@ pub mod login_register_routes {
         Ok(success_json())
     }
 
+    /// Logs in using email and password
     #[get("/login")]
     pub async fn login(
         query: web::Query<LoginQuery>,
@@ -75,6 +80,7 @@ pub mod login_register_routes {
         )
     }
 
+    /// Logs out
     #[get("/logout")]
     pub async fn logout(
         req: HttpRequest,
@@ -98,6 +104,7 @@ pub mod login_register_routes {
         }
     }
 
+    /// Logs out everywhere, removing all sessions
     #[get("/logout_everywhere")]
     pub async fn logout_everywhere(
         req: HttpRequest,

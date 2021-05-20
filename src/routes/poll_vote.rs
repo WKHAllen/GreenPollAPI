@@ -5,21 +5,25 @@ use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, get_user_by_session};
 use crate::routes::PollJSON;
 
+/// Query parameters for voting on a poll
 #[derive(Serialize, Deserialize)]
 pub struct PollVoteQuery {
     poll_option_id: i32,
 }
 
+/// Query parameters for removing a vote from a poll
 #[derive(Serialize, Deserialize)]
 pub struct PollUnvoteQuery {
     poll_id: i32,
 }
 
+/// Query parameters for getting the poll associated with a poll vote
 #[derive(Serialize, Deserialize)]
 pub struct GetPollVotePollQuery {
     poll_vote_id: i32,
 }
 
+/// JSON representation of a poll vote
 #[derive(Serialize, Deserialize)]
 pub struct PollVoteJSON {
     pub id: i32,
@@ -29,9 +33,11 @@ pub struct PollVoteJSON {
     pub vote_time: i64,
 }
 
+/// The poll vote routes
 pub mod poll_vote_routes {
     use super::*;
 
+    /// Votes on a poll and returns the resulting record
     #[get("/poll_vote")]
     pub async fn poll_vote(
         req: HttpRequest,
@@ -55,6 +61,7 @@ pub mod poll_vote_routes {
         }))
     }
 
+    /// Removes a vote from a poll
     #[get("/poll_unvote")]
     pub async fn poll_unvote(
         req: HttpRequest,
@@ -72,6 +79,7 @@ pub mod poll_vote_routes {
         Ok(success_json())
     }
 
+    /// Returns the poll associated with the poll vote
     #[get("/get_poll_vote_poll")]
     pub async fn get_poll_vote_poll(
         query: web::Query<GetPollVotePollQuery>,

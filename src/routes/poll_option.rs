@@ -5,33 +5,39 @@ use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, error_json, get_user_by_session};
 use crate::routes::PollJSON;
 
+/// Query parameters for creating a poll option
 #[derive(Serialize, Deserialize)]
 pub struct CreatePollOptionQuery {
     poll_id: i32,
     value: String,
 }
 
+/// Query parameters for getting a poll option
 #[derive(Serialize, Deserialize)]
 pub struct GetPollOptionQuery {
     poll_option_id: i32,
 }
 
+/// Query parameters for setting a poll option's text representation
 #[derive(Serialize, Deserialize)]
 pub struct SetPollOptionValueQuery {
     poll_option_id: i32,
     new_value: String,
 }
 
+/// Query parameters for getting the poll associated with a poll option
 #[derive(Serialize, Deserialize)]
 pub struct GetPollOptionPollQuery {
     poll_option_id: i32,
 }
 
+/// Query parameters for deleting a poll option
 #[derive(Serialize, Deserialize)]
 pub struct DeletePollOptionQuery {
     poll_option_id: i32,
 }
 
+/// JSON representation of a poll option
 #[derive(Serialize, Deserialize)]
 pub struct PollOptionJSON {
     pub id: i32,
@@ -39,9 +45,11 @@ pub struct PollOptionJSON {
     pub value: String,
 }
 
+/// The poll option routes
 pub mod poll_option_routes {
     use super::*;
 
+    /// Creates a poll option and returns the resulting record
     #[get("/create_poll_option")]
     pub async fn create_poll_option(
         req: HttpRequest,
@@ -70,6 +78,7 @@ pub mod poll_option_routes {
         }
     }
 
+    /// Returns the poll option details
     #[get("/get_poll_option_info")]
     pub async fn get_poll_option_info(
         query: web::Query<GetPollOptionQuery>,
@@ -88,6 +97,7 @@ pub mod poll_option_routes {
         }))
     }
 
+    /// Sets the text representation of a poll option
     #[get("/set_poll_option_value")]
     pub async fn set_poll_option_value(
         req: HttpRequest,
@@ -112,6 +122,7 @@ pub mod poll_option_routes {
         }
     }
 
+    /// Returns the poll associated with a poll option
     #[get("/get_poll_option_poll")]
     pub async fn get_poll_option_poll(
         query: web::Query<GetPollOptionPollQuery>,
@@ -132,6 +143,7 @@ pub mod poll_option_routes {
         }))
     }
 
+    /// Deletes a poll option
     #[get("/delete_poll_option")]
     pub async fn delete_poll_option(
         req: HttpRequest,
