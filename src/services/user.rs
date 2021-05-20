@@ -8,6 +8,7 @@ use crate::{generic_service_err, generic_err};
 use crate::services;
 use crate::services::Session;
 
+/// Representation of the user database table
 pub struct User {
     pub id: i32,
     pub username: String,
@@ -17,9 +18,18 @@ pub struct User {
     pub join_time: PrimitiveDateTime,
 }
 
+/// The user service
 pub mod user_service {
     use super::*;
 
+    /// Creates a user and returns the resulting record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `username` - The user's username
+    /// * `email` - The user's email
+    /// * `password` - The user's password
     pub async fn create_user(pool: &DBPool, username: String, email: String, password: String) -> Result<User> {
         let username_exists = user_exists_for_username(pool, username.clone()).await?;
         let email_exists = user_exists_for_email(pool, email.clone()).await?;
@@ -48,6 +58,12 @@ pub mod user_service {
         }
     }
 
+    /// Returns whether or not a user exists
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
     pub async fn user_exists(pool: &DBPool, user_id: i32) -> Result<bool> {
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user.sql", user_id)
@@ -57,6 +73,12 @@ pub mod user_service {
         Ok(res.len() == 1)
     }
 
+    /// Returns whether or not a user exists given a username
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `username` - The username of the user
     pub async fn user_exists_for_username(pool: &DBPool, username: String) -> Result<bool> {
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_username.sql", username)
@@ -66,6 +88,12 @@ pub mod user_service {
         Ok(res.len() == 1)
     }
 
+    /// Returns whether or not a user exists given an email address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The email address of the user
     pub async fn user_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
@@ -75,6 +103,12 @@ pub mod user_service {
         Ok(res.len() == 1)
     }
 
+    /// Returns a user
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
     pub async fn get_user(pool: &DBPool, user_id: i32) -> Result<User> {
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user.sql", user_id)
@@ -88,6 +122,12 @@ pub mod user_service {
         }
     }
 
+    /// Returns a user given a username
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `username` - The username of the user
     pub async fn get_user_by_username(pool: &DBPool, username: String) -> Result<User> {
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_username.sql", username)
@@ -101,6 +141,12 @@ pub mod user_service {
         }
     }
 
+    /// Returns a user given an email address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The email address of the user
     pub async fn get_user_by_email(pool: &DBPool, email: String) -> Result<User> {
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
@@ -114,6 +160,13 @@ pub mod user_service {
         }
     }
 
+    /// Sets a user's username
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
+    /// * `username` - The new username
     pub async fn set_username(pool: &DBPool, user_id: i32, username: String) -> Result<()> {
         let username_exists = user_exists_for_username(pool, username.clone()).await?;
 
@@ -131,6 +184,13 @@ pub mod user_service {
         }
     }
 
+    /// Sets the user's email address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
+    /// * `email` - The new email address
     pub async fn set_email(pool: &DBPool, user_id: i32, email: String) -> Result<()> {
         let email_exists = user_exists_for_email(pool, email.clone()).await?;
 
@@ -148,6 +208,13 @@ pub mod user_service {
         }
     }
 
+    /// Sets the user's password
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
+    /// * `password` - The new password
     pub async fn set_password(pool: &DBPool, user_id: i32, password: String) -> Result<()> {
         if password.len() < 8 || password.len() > 255 {
             generic_err!("Password must be at least 8 characters")
@@ -165,6 +232,13 @@ pub mod user_service {
         }
     }
 
+    /// Sets a user's verified status
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
+    /// * `verified` - The new verified status
     pub async fn set_verified(pool: &DBPool, user_id: i32, verified: bool) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/user/set_verified.sql", verified, user_id)
@@ -174,6 +248,12 @@ pub mod user_service {
         Ok(())
     }
 
+    /// Deletes a user
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `user_id` - The ID of the user
     pub async fn delete_user(pool: &DBPool, user_id: i32) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/user/delete_user.sql", user_id)
@@ -183,6 +263,13 @@ pub mod user_service {
         Ok(())
     }
 
+    /// Logs a user in and returns the new session
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The user's email address
+    /// * `password` - The user's password
     pub async fn login(pool: &DBPool, email: String, password: String) -> Result<Session> {
         let user_exists = user_exists_for_email(pool, email.clone()).await?;
 

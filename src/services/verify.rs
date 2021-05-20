@@ -5,15 +5,23 @@ use crate::generic_service_err;
 use crate::services;
 use crate::services::User;
 
+/// Representation of the verify database table
 pub struct Verify {
     pub id: String,
     pub email: String,
     pub create_time: PrimitiveDateTime,
 }
 
+/// The verify service
 pub mod verify_service {
     use super::*;
 
+    /// Creates a verification record and returns the resulting record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The email address of the user being verified
     pub async fn create_verification(pool: &DBPool, email: String) -> Result<Verify> {
         prune_verifications(pool).await?;
 
@@ -33,6 +41,12 @@ pub mod verify_service {
         }
     }
 
+    /// Returns whether or not a verification record exists
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `verify_id` - The ID of the verification record
     pub async fn verification_exists(pool: &DBPool, verify_id: String) -> Result<bool> {
         prune_verifications(pool).await?;
 
@@ -44,6 +58,12 @@ pub mod verify_service {
         Ok(res.len() == 1)
     }
 
+    /// Returns whether or not a verification record exists given an email address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The email address associated with the verification record
     pub async fn verification_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
         prune_verifications(pool).await?;
 
@@ -55,6 +75,12 @@ pub mod verify_service {
         Ok(res.len() == 1)
     }
 
+    /// Returns a verification record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `verify_id` - The ID of the verification record
     pub async fn get_verification(pool: &DBPool, verify_id: String) -> Result<Verify> {
         prune_verifications(pool).await?;
 
@@ -70,6 +96,12 @@ pub mod verify_service {
         }
     }
 
+    /// Returns a verification record given an email address
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `email` - The email address associated with the verification record
     pub async fn get_verification_for_email(pool: &DBPool, email: String) -> Result<Verify> {
         prune_verifications(pool).await?;
 
@@ -85,6 +117,12 @@ pub mod verify_service {
         }
     }
 
+    /// Returns the user who created the verification record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `verify_id` - The ID of the verification record
     pub async fn get_user_by_verification(pool: &DBPool, verify_id: String) -> Result<User> {
         prune_verifications(pool).await?;
 
@@ -100,6 +138,12 @@ pub mod verify_service {
         }
     }
 
+    /// Deletes a verification record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `verify_id` - The ID of the verification record
     pub async fn delete_verification(pool: &DBPool, verify_id: String) -> Result<()> {
         prune_verifications(pool).await?;
 
@@ -111,6 +155,12 @@ pub mod verify_service {
         Ok(())
     }
 
+    /// Verifies a user's account and deletes the verification record
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `verify_id` - The ID of the verification record
     pub async fn verify_user(pool: &DBPool, verify_id: String) -> Result<()> {
         prune_verifications(pool).await?;
 
@@ -127,6 +177,11 @@ pub mod verify_service {
         }
     }
 
+    /// Prunes all old verification records
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
     pub async fn prune_verifications(pool: &DBPool) -> Result<()> {
         generic_service_err!(
             sqlx::query_file!("sql/verify/prune_verifications.sql")
