@@ -63,7 +63,7 @@ pub fn send_email(
 /// 
 /// In the HTML and text email files, the following could be used to insert placeholder values:
 /// 
-/// `Hello, {firstname} {lastname}. You have received the message: {message}.
+/// `Hello, {firstname} {lastname}. You have received the message: {message}.`
 /// 
 /// The `options` parameter could then contain values for `firstname`, `lastname`, and `message`.
 pub fn send_formatted_email(
