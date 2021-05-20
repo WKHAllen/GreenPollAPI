@@ -4,6 +4,14 @@ use lettre_email::EmailBuilder;
 use std::io::{Result, Error, ErrorKind};
 use std::collections::HashMap;
 
+/// Sends an email using the app email account
+/// 
+/// # Arguments
+/// 
+/// * `email_to` - The address to send the email to
+/// * `email_subject` - The subject line of the email
+/// * `email_html` - The HTML content to send in the email body
+/// * `email_text` - The text content to send in the email body
 pub fn send_email(
     email_to: String,
     email_subject: String,
@@ -42,6 +50,22 @@ pub fn send_email(
     Ok(result)
 }
 
+/// Sends an email in the `/emails` directory, replacing placeholder values in the HTML and text representations of the email
+/// 
+/// # Arguments
+/// 
+/// * `email_to` - The address to send the email to
+/// * `email_subject` - The subject line of the email
+/// * `email_name` - The name of the email files in the emails directory
+/// * `options` - Key-value pairs of the placeholders and their values
+/// 
+/// # Placeholder example
+/// 
+/// In the HTML and text email files, the following could be used to insert placeholder values:
+/// 
+/// `Hello, {firstname} {lastname}. You have received the message: {message}.
+/// 
+/// The `options` parameter could then contain values for `firstname`, `lastname`, and `message`.
 pub fn send_formatted_email(
     email_to: String,
     email_subject: String,

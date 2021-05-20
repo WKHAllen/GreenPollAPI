@@ -10,15 +10,18 @@ mod services;
 
 use util::AppData;
 
+/// Index route
 #[get("/")]
 async fn index() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().json("Hello, world!"))
 }
 
+/// 404 route
 async fn not_found() -> Result<HttpResponse> {
     Ok(HttpResponse::NotFound().json("404 not found"))
 }
 
+/// Main function
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Get port

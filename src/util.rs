@@ -3,22 +3,31 @@ use actix_web::{HttpRequest, HttpResponse, HttpMessage, Result};
 use crate::services;
 use crate::services::User;
 
+/// Shortcut for the sqlx postgres pool type
 pub type DBPool = sqlx::Pool<sqlx::Postgres>;
 
+/// Container for the database pool within the actix app
 pub struct AppData {
     pub pool: sqlx::Pool<sqlx::Postgres>,
 }
 
+/// Success JSON message
 #[derive(Serialize, Deserialize)]
 pub struct SuccessJSON {
     pub success: bool,
 }
 
+/// Error JSON message
 #[derive(Serialize, Deserialize)]
 pub struct ErrorJSON {
     pub error: String,
 }
 
+/// A macro for matching errors at the routing layer and returning them in JSON in a generic format
+/// 
+/// # Arguments
+/// 
+/// * `x` - The code to be matched for errors
 #[macro_export]
 macro_rules! generic_http_err {
     ( $x:expr ) => {
@@ -31,6 +40,12 @@ macro_rules! generic_http_err {
     };
 }
 
+/// A macro for matching errors at the service layer and returning them in a generic error object
+/// 
+/// # Arguments
+/// 
+/// * `x` - The code to be matched for errors
+/// * `err` - The error message
 #[macro_export]
 macro_rules! generic_service_err {
     ( $x:expr, $err:literal ) => {
@@ -41,6 +56,11 @@ macro_rules! generic_service_err {
     };
 }
 
+/// A macro for creating generic errors
+/// 
+/// # Arguments
+/// 
+/// * `err` - The error message
 #[macro_export]
 macro_rules! generic_err {
     ( $err:literal ) => {
@@ -48,18 +68,30 @@ macro_rules! generic_err {
     };
 }
 
+/// Returns a success JSON HTTP response
 pub fn success_json() -> HttpResponse {
     HttpResponse::Ok().json(SuccessJSON {
         success: true
     })
 }
 
+/// Returns an error JSON HTTP response
+/// 
+/// # Arguments
+/// 
+/// * `err` - The error message
 pub fn error_json(err: &str) -> HttpResponse {
     HttpResponse::Ok().json(ErrorJSON {
         error: String::from(err)
     })
 }
 
+/// Returns the user that is logged in
+/// 
+/// # Arguments
+/// 
+/// * `pool` - The database pool
+/// * `req` - The HTTP request object
 pub async fn get_user_by_session(pool: &DBPool, req: HttpRequest) -> Result<User> {
     let session_id = match req.cookie("session_id") {
         Some(val) => Ok(val),
