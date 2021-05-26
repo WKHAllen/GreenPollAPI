@@ -1,4 +1,5 @@
 use actix_web::{App, HttpServer, HttpResponse, Result, web, get};
+use actix_cors::Cors;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::{Mutex, Arc};
 
@@ -51,7 +52,10 @@ async fn main() -> std::io::Result<()> {
 
     // Create HTTP server
     let server = HttpServer::new(move || {
+            let cors = Cors::default().supports_credentials();
+
             App::new()
+                .wrap(cors)
                 .data(app_data.clone())
                 .service(index)
                 .service(routes::user_routes::get_user_info)
