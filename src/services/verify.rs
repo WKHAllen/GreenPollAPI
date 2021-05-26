@@ -183,6 +183,8 @@ pub mod verify_service {
     /// 
     /// * `pool` - The database pool
     pub async fn prune_verifications(pool: &DBPool) -> Result<()> {
+        services::user_service::prune_unverified_users(pool).await?;
+
         generic_service_err!(
             sqlx::query_file!("sql/verify/prune_verifications.sql")
             .fetch_all(pool).await,

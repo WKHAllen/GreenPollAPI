@@ -31,6 +31,8 @@ pub mod user_service {
     /// * `email` - The user's email
     /// * `password` - The user's password
     pub async fn create_user(pool: &DBPool, username: String, email: String, password: String) -> Result<User> {
+        prune_unverified_users(pool).await?;
+
         let username_exists = user_exists_for_username(pool, username.clone()).await?;
         let email_exists = user_exists_for_email(pool, email.clone()).await?;
 
@@ -65,6 +67,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `user_id` - The ID of the user
     pub async fn user_exists(pool: &DBPool, user_id: i32) -> Result<bool> {
+        prune_unverified_users(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user.sql", user_id)
             .fetch_all(pool).await,
@@ -80,6 +84,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `username` - The username of the user
     pub async fn user_exists_for_username(pool: &DBPool, username: String) -> Result<bool> {
+        prune_unverified_users(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_username.sql", username)
             .fetch_all(pool).await,
@@ -95,6 +101,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `email` - The email address of the user
     pub async fn user_exists_for_email(pool: &DBPool, email: String) -> Result<bool> {
+        prune_unverified_users(pool).await?;
+
         let res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
             .fetch_all(pool).await,
@@ -110,6 +118,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `user_id` - The ID of the user
     pub async fn get_user(pool: &DBPool, user_id: i32) -> Result<User> {
+        prune_unverified_users(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user.sql", user_id)
             .fetch_all(pool).await,
@@ -129,6 +139,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `username` - The username of the user
     pub async fn get_user_by_username(pool: &DBPool, username: String) -> Result<User> {
+        prune_unverified_users(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_username.sql", username)
             .fetch_all(pool).await,
@@ -148,6 +160,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `email` - The email address of the user
     pub async fn get_user_by_email(pool: &DBPool, email: String) -> Result<User> {
+        prune_unverified_users(pool).await?;
+
         let mut res = generic_service_err!(
             sqlx::query_file_as!(User, "sql/user/get_user_by_email.sql", email)
             .fetch_all(pool).await,
@@ -168,6 +182,8 @@ pub mod user_service {
     /// * `user_id` - The ID of the user
     /// * `username` - The new username
     pub async fn set_username(pool: &DBPool, user_id: i32, username: String) -> Result<()> {
+        prune_unverified_users(pool).await?;
+
         let username_exists = user_exists_for_username(pool, username.clone()).await?;
 
         if username_exists {
@@ -192,6 +208,8 @@ pub mod user_service {
     /// * `user_id` - The ID of the user
     /// * `email` - The new email address
     pub async fn set_email(pool: &DBPool, user_id: i32, email: String) -> Result<()> {
+        prune_unverified_users(pool).await?;
+
         let email_exists = user_exists_for_email(pool, email.clone()).await?;
 
         if email_exists {
@@ -216,6 +234,8 @@ pub mod user_service {
     /// * `user_id` - The ID of the user
     /// * `password` - The new password
     pub async fn set_password(pool: &DBPool, user_id: i32, password: String) -> Result<()> {
+        prune_unverified_users(pool).await?;
+
         if password.len() < 8 || password.len() > 255 {
             generic_err!("Password must be at least 8 characters")
         } else {
@@ -240,6 +260,8 @@ pub mod user_service {
     /// * `user_id` - The ID of the user
     /// * `verified` - The new verified status
     pub async fn set_verified(pool: &DBPool, user_id: i32, verified: bool) -> Result<()> {
+        prune_unverified_users(pool).await?;
+
         generic_service_err!(
             sqlx::query_file!("sql/user/set_verified.sql", verified, user_id)
             .fetch_all(pool).await,
@@ -255,6 +277,8 @@ pub mod user_service {
     /// * `pool` - The database pool
     /// * `user_id` - The ID of the user
     pub async fn delete_user(pool: &DBPool, user_id: i32) -> Result<()> {
+        prune_unverified_users(pool).await?;
+
         generic_service_err!(
             sqlx::query_file!("sql/user/delete_user.sql", user_id)
             .fetch_all(pool).await,
@@ -271,6 +295,8 @@ pub mod user_service {
     /// * `email` - The user's email address
     /// * `password` - The user's password
     pub async fn login(pool: &DBPool, email: String, password: String) -> Result<Session> {
+        prune_unverified_users(pool).await?;
+
         let user_exists = user_exists_for_email(pool, email.clone()).await?;
 
         if user_exists {
@@ -289,5 +315,19 @@ pub mod user_service {
         } else {
             Err(Error::new(ErrorKind::Other, "Invalid login"))
         }
+    }
+
+    /// Prunes all old and unverified user records
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    pub async fn prune_unverified_users(pool: &DBPool) -> Result<()> {
+        generic_service_err!(
+            sqlx::query_file!("sql/user/prune_unverified_users.sql")
+            .fetch_all(pool).await,
+            "Failed to prune unverified users");
+
+        Ok(())
     }
 }
