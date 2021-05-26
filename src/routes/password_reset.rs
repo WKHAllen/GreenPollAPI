@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use std::io::{Error, ErrorKind};
 use crate::{services, generic_http_err};
-use crate::util::{AppData, ErrorJSON, success_json};
+use crate::util::{AppData, ErrorJSON, success_json, FRONTEND_URL};
 use crate::emailer;
 
 /// Query parameters for requesting a password reset
@@ -39,7 +39,7 @@ pub mod password_reset_routes {
             query.email.clone(),
             "GreenPoll - Password Reset".to_string(),
             "password_reset".to_string(),
-            [("reset_id", &password_reset.id[..])].iter().cloned().collect()
+            [("url", FRONTEND_URL), ("reset_id", &password_reset.id[..])].iter().cloned().collect()
         ) {
             Ok(_) => Ok(()),
             Err(_) => Err(Error::new(ErrorKind::Other, "Failed to send password reset email"))

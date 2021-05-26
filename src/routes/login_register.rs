@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use std::io::{Error, ErrorKind};
 use crate::{services, generic_http_err};
-use crate::util::{AppData, SuccessJSON, ErrorJSON, success_json, get_user_by_session};
+use crate::util::{AppData, SuccessJSON, ErrorJSON, success_json, get_user_by_session, FRONTEND_URL};
 use crate::emailer;
 
 /// Query parameters for registration
@@ -46,7 +46,7 @@ pub mod login_register_routes {
             user.email.clone(),
             "GreenPoll - Verify Account".to_string(),
             "verify".to_string(),
-            [("verify_id", &verification.id[..])].iter().cloned().collect()
+            [("url", FRONTEND_URL), ("verify_id", &verification.id[..])].iter().cloned().collect()
         ) {
             Ok(_) => Ok(()),
             Err(_) => Err(Error::new(ErrorKind::Other, "Failed to send verification email"))

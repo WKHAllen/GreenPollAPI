@@ -3,6 +3,9 @@ use actix_web::{HttpRequest, HttpResponse, HttpMessage, Result};
 use crate::services;
 use crate::services::User;
 
+/// The URL for the frontend
+pub const FRONTEND_URL: &str = "https://greenpoll.herokuapp.com/";
+
 /// Shortcut for the sqlx postgres pool type
 pub type DBPool = sqlx::Pool<sqlx::Postgres>;
 
