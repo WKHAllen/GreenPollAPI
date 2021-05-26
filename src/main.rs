@@ -9,7 +9,7 @@ mod emailer;
 mod routes;
 mod services;
 
-use util::AppData;
+use util::{AppData, FRONTEND_URL};
 
 /// Index route
 #[get("/")]
@@ -52,7 +52,11 @@ async fn main() -> std::io::Result<()> {
 
     // Create HTTP server
     let server = HttpServer::new(move || {
-            let cors = Cors::default().allow_any_origin();
+            let cors = Cors::default()
+                .allowed_origin(FRONTEND_URL)
+                .allow_any_method()
+                .allow_any_header()
+                .supports_credentials();
 
             App::new()
                 .wrap(cors)
