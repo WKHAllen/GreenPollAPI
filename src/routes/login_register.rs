@@ -71,7 +71,7 @@ pub mod login_register_routes {
             .cookie(
                 Cookie::build("session_id", session.id)
                     .path("/")
-                    .secure(true)
+                    .secure(false)
                     .http_only(true)
                     .finish()
             ).json(SuccessJSON {
