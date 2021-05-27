@@ -1,5 +1,5 @@
 use actix_web::{HttpRequest, HttpResponse, HttpMessage, Result, web, get};
-use actix_web::cookie::Cookie;
+use actix_web::cookie::{Cookie, SameSite};
 use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use std::io::{Error, ErrorKind};
@@ -73,6 +73,7 @@ pub mod login_register_routes {
                     .path("/")
                     .secure(false)
                     .http_only(true)
+                    .same_site(SameSite::None)
                     .finish()
             ).json(SuccessJSON {
                 success: true
