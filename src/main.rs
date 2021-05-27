@@ -88,6 +88,7 @@ async fn main() -> std::io::Result<()> {
                 .service(routes::login_register_routes::logout_everywhere)
                 .service(routes::verify_routes::verify_account)
                 .service(routes::password_reset_routes::request_password_reset)
+                .service(routes::password_reset_routes::password_reset_exists)
                 .service(routes::password_reset_routes::reset_password)
                 .default_service(web::route().to(not_found))
         })

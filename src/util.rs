@@ -26,6 +26,12 @@ pub struct ErrorJSON {
     pub error: String,
 }
 
+/// Exists JSON message
+#[derive(Serialize, Deserialize)]
+pub struct ExistsJSON {
+    pub exists: bool,
+}
+
 /// A macro for matching errors at the routing layer and returning them in JSON in a generic format
 /// 
 /// # Arguments

@@ -3,13 +3,19 @@ use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use std::io::{Error, ErrorKind};
 use crate::{services, generic_http_err};
-use crate::util::{AppData, ErrorJSON, success_json, FRONTEND_URL};
+use crate::util::{AppData, ErrorJSON, ExistsJSON, success_json, FRONTEND_URL};
 use crate::emailer;
 
 /// Query parameters for requesting a password reset
 #[derive(Serialize, Deserialize)]
 pub struct RequestPasswordResetQuery {
     email: String,
+}
+
+/// Query parameters for checking if a password reset record exists
+#[derive(Serialize, Deserialize)]
+pub struct PasswordResetExistsQuery {
+    reset_id: String,
 }
 
 /// Query parameters for resetting a password
@@ -46,6 +52,23 @@ pub mod password_reset_routes {
         }?;
 
         Ok(success_json())
+    }
+
+    /// Checks whether or not a password reset record exists
+    #[get("/password_reset_exists")]
+    pub async fn password_reset_exists(
+        query: web::Query<PasswordResetExistsQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let exists = generic_http_err!(
+            services::password_reset_service::password_reset_exists(&data.pool, query.reset_id.clone())
+            .await);
+
+        Ok(HttpResponse::Ok().json(ExistsJSON {
+            exists: exists
+        }))
     }
 
     /// Resets a password
