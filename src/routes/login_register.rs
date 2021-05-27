@@ -72,7 +72,7 @@ pub mod login_register_routes {
                 Cookie::build("session_id", session.id)
                     .path("/")
                     .secure(true)
-                    .http_only(false)
+                    .http_only(true)
                     .same_site(SameSite::None)
                     .finish()
             ).json(SuccessJSON {
@@ -99,7 +99,7 @@ pub mod login_register_routes {
                     Cookie::build("session_id", "")
                         .path("/")
                         .secure(true)
-                        .http_only(false)
+                        .http_only(true)
                         .same_site(SameSite::None)
                         .finish()
                 ).json(SuccessJSON {
@@ -130,7 +130,7 @@ pub mod login_register_routes {
                 Cookie::build("session_id", "")
                     .path("/")
                     .secure(true)
-                    .http_only(false)
+                    .http_only(true)
                     .same_site(SameSite::None)
                     .finish()
             ).json(SuccessJSON {
