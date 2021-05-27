@@ -1,4 +1,5 @@
 use actix_web::{App, HttpServer, HttpResponse, Result, web, get};
+use actix_web::http::header;
 use actix_cors::Cors;
 use sqlx::postgres::PgPoolOptions;
 use std::sync::{Mutex, Arc};
@@ -55,8 +56,8 @@ async fn main() -> std::io::Result<()> {
             let cors = Cors::default()
                 .allowed_origin(FRONTEND_URL)
                 .allowed_origin("http://localhost:3000")
-                .allow_any_method()
-                .allow_any_header()
+                .allowed_methods(vec!["GET", "POST"])
+                .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE, header::ACCESS_CONTROL_ALLOW_CREDENTIALS])
                 .supports_credentials();
 
             App::new()
