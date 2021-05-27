@@ -72,7 +72,7 @@ pub mod login_register_routes {
                 Cookie::build("session_id", session.id)
                     .path("/")
                     .secure(true)
-                    .http_only(true)
+                    .http_only(false)
                     .same_site(SameSite::None)
                     .finish()
             ).json(SuccessJSON {
@@ -95,8 +95,14 @@ pub mod login_register_routes {
                 .await);
 
             Ok(HttpResponse::Ok()
-                .del_cookie(session_cookie)
-                .json(SuccessJSON {
+                .cookie(
+                    Cookie::build("session_id", "")
+                        .path("/")
+                        .secure(true)
+                        .http_only(false)
+                        .same_site(SameSite::None)
+                        .finish()
+                ).json(SuccessJSON {
                     success: true
                 })
             )
@@ -113,21 +119,23 @@ pub mod login_register_routes {
     ) -> Result<HttpResponse> {
         let data = app_data.lock().unwrap();
 
-        if let Some(ref session_cookie) = req.cookie("session_id") {
-            let user = get_user_by_session(&data.pool, req).await?;
+        let user = get_user_by_session(&data.pool, req).await?;
 
-            generic_http_err!(
-                services::session_service::delete_user_sessions(&data.pool, user.id)
-                .await);
+        generic_http_err!(
+            services::session_service::delete_user_sessions(&data.pool, user.id)
+            .await);
 
-            Ok(HttpResponse::Ok()
-                .del_cookie(session_cookie)
-                .json(SuccessJSON {
-                    success: true
-                })
-            )
-        } else {
-            Ok(success_json())
-        }
+        Ok(HttpResponse::Ok()
+            .cookie(
+                Cookie::build("session_id", "")
+                    .path("/")
+                    .secure(true)
+                    .http_only(false)
+                    .same_site(SameSite::None)
+                    .finish()
+            ).json(SuccessJSON {
+                success: true
+            })
+        )
     }
 }
