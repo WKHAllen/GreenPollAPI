@@ -65,6 +65,7 @@ async fn main() -> std::io::Result<()> {
                 .data(app_data.clone())
                 .service(index)
                 .service(routes::user_routes::get_user_info)
+                .service(routes::user_routes::get_specific_user_info)
                 .service(routes::user_routes::set_username)
                 .service(routes::user_routes::set_password)
                 .service(routes::poll_routes::create_poll)

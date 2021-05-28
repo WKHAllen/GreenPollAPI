@@ -4,6 +4,12 @@ use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
 use crate::util::{AppData, ErrorJSON, success_json, get_user_by_session};
 
+/// Query parameters for getting a specific user's info
+#[derive(Serialize, Deserialize)]
+pub struct GetSpecificUserQuery {
+    user_id: i32,
+}
+
 /// Query parameters for setting a user's username
 #[derive(Serialize, Deserialize)]
 pub struct SetUsernameQuery {
@@ -25,6 +31,14 @@ pub struct UserJSON {
     pub join_time: i64,
 }
 
+/// JSON representation of a user as seen by another user
+#[derive(Serialize, Deserialize)]
+pub struct SpecificUserJSON {
+    pub id: i32,
+    pub username: String,
+    pub join_time: i64,
+}
+
 /// The user routes
 pub mod user_routes {
     use super::*;
@@ -43,6 +57,25 @@ pub mod user_routes {
             id: user.id,
             username: user.username,
             email: user.email,
+            join_time: user.join_time.timestamp()
+        }))
+    }
+
+    /// Returns a specified user's details
+    #[get("/get_specific_user_info")]
+    pub async fn get_specific_user_info(
+        query: web::Query<GetSpecificUserQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let user = generic_http_err!(
+            services::user_service::get_user(&data.pool, query.user_id)
+            .await);
+
+        Ok(HttpResponse::Ok().json(SpecificUserJSON {
+            id: user.id,
+            username: user.username,
             join_time: user.join_time.timestamp()
         }))
     }
