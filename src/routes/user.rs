@@ -77,7 +77,7 @@ pub mod user_routes {
         let user = get_user_by_session(&data.pool, req).await?;
 
         generic_http_err!(
-            services::user_service::set_username(&data.pool, user.id, query.new_password.clone())
+            services::user_service::set_password(&data.pool, user.id, query.new_password.clone())
             .await);
 
         Ok(success_json())
