@@ -83,6 +83,7 @@ async fn main() -> std::io::Result<()> {
                 .service(routes::poll_vote_routes::poll_vote)
                 .service(routes::poll_vote_routes::poll_unvote)
                 .service(routes::poll_vote_routes::get_poll_vote_poll)
+                .service(routes::poll_vote_routes::get_user_vote)
                 .service(routes::login_register_routes::register)
                 .service(routes::login_register_routes::login)
                 .service(routes::login_register_routes::logout)

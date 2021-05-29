@@ -23,6 +23,12 @@ pub struct GetPollVotePollQuery {
     poll_vote_id: i32,
 }
 
+/// Query parameters for getting a vote made by the current user
+#[derive(Serialize, Deserialize)]
+pub struct GetUserVoteQuery {
+    poll_id: i32,
+}
+
 /// JSON representation of a poll vote
 #[derive(Serialize, Deserialize)]
 pub struct PollVoteJSON {
@@ -48,16 +54,16 @@ pub mod poll_vote_routes {
 
         let user = get_user_by_session(&data.pool, req).await?;
 
-        let poll_vote = generic_http_err!(
+        let vote = generic_http_err!(
             services::poll_vote_service::vote(&data.pool, user.id, query.poll_option_id)
             .await);
 
         Ok(HttpResponse::Ok().json(PollVoteJSON {
-            id: poll_vote.id,
-            user_id: poll_vote.user_id,
-            poll_id: poll_vote.poll_id,
-            poll_option_id: poll_vote.poll_option_id,
-            vote_time: poll_vote.vote_time.timestamp()
+            id: vote.id,
+            user_id: vote.user_id,
+            poll_id: vote.poll_id,
+            poll_option_id: vote.poll_option_id,
+            vote_time: vote.vote_time.timestamp()
         }))
     }
 
@@ -97,6 +103,30 @@ pub mod poll_vote_routes {
             title: poll.title,
             description: poll.description,
             create_time: poll.create_time.timestamp()
+        }))
+    }
+
+    /// Returns the vote the current user created
+    #[get("/get_user_vote")]
+    pub async fn get_user_vote(
+        req: HttpRequest,
+        query: web::Query<GetUserVoteQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let user = get_user_by_session(&data.pool, req).await?;
+
+        let vote = generic_http_err!(
+            services::poll_vote_service::get_poll_vote(&data.pool, user.id, query.poll_id)
+            .await);
+
+        Ok(HttpResponse::Ok().json(PollVoteJSON {
+            id: vote.id,
+            user_id: vote.user_id,
+            poll_id: vote.poll_id,
+            poll_option_id: vote.poll_option_id,
+            vote_time: vote.vote_time.timestamp()
         }))
     }
 }
