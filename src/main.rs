@@ -72,6 +72,7 @@ async fn main() -> std::io::Result<()> {
                 .service(routes::poll_routes::get_poll_info)
                 .service(routes::poll_routes::get_poll_options)
                 .service(routes::poll_routes::get_poll_votes)
+                .service(routes::poll_routes::get_poll_user_votes)
                 .service(routes::poll_routes::set_poll_title)
                 .service(routes::poll_routes::set_poll_description)
                 .service(routes::poll_routes::delete_poll)

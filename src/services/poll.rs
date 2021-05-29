@@ -13,6 +13,15 @@ pub struct Poll {
     pub create_time: PrimitiveDateTime,
 }
 
+/// Representation of a poll vote and voter information
+pub struct PollUserVote {
+    pub user_id: i32,
+    pub username: String,
+    pub poll_option_id: i32,
+    pub poll_option_value: String,
+    pub vote_time: PrimitiveDateTime,
+}
+
 /// The poll service
 pub mod poll_service {
     use super::*;
@@ -100,6 +109,21 @@ pub mod poll_service {
             sqlx::query_file_as!(PollVote, "sql/poll/get_poll_votes.sql", poll_id)
             .fetch_all(pool).await,
             "Failed to fetch poll votes");
+
+        Ok(res)
+    }
+
+    /// Returns all poll votes and user information associated with a poll
+    /// 
+    /// # Arguments
+    /// 
+    /// * `pool` - The database pool
+    /// * `poll_id` - The ID of the poll
+    pub async fn get_poll_user_votes(pool: &DBPool, poll_id: i32) -> Result<Vec<PollUserVote>> {
+        let res = generic_service_err!(
+            sqlx::query_file_as!(PollUserVote, "sql/poll/get_poll_user_votes.sql", poll_id)
+            .fetch_all(pool).await,
+            "Failed to fetch poll user votes");
 
         Ok(res)
     }

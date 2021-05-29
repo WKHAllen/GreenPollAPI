@@ -60,6 +60,16 @@ pub struct PollJSON {
     pub create_time: i64,
 }
 
+/// JSON representation of a poll vote and voter information
+#[derive(Serialize, Deserialize)]
+pub struct PollUserVoteJSON {
+    pub user_id: i32,
+    pub username: String,
+    pub poll_option_id: i32,
+    pub poll_option_value: String,
+    pub vote_time: i64,
+}
+
 /// The poll routes
 pub mod poll_routes {
     use super::*;
@@ -147,6 +157,29 @@ pub mod poll_routes {
             user_id: vote.user_id,
             poll_id: vote.poll_id,
             poll_option_id: vote.poll_option_id,
+            vote_time: vote.vote_time.timestamp()
+        }).collect();
+
+        Ok(HttpResponse::Ok().json(votes))
+    }
+
+    /// Returns all poll votes and user information associated with a poll
+    #[get("/get_poll_user_votes")]
+    pub async fn get_poll_user_votes(
+        query: web::Query<GetPollVotesQuery>,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let poll_user_votes = generic_http_err!(
+            services::poll_service::get_poll_user_votes(&data.pool, query.poll_id)
+            .await);
+
+        let votes: Vec<PollUserVoteJSON> = poll_user_votes.iter().map(|vote| PollUserVoteJSON {
+            user_id: vote.user_id,
+            username: vote.username.clone(),
+            poll_option_id: vote.poll_option_id,
+            poll_option_value: vote.poll_option_value.clone(),
             vote_time: vote.vote_time.timestamp()
         }).collect();
 
