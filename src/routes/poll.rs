@@ -41,7 +41,7 @@ pub struct SetTitleQuery {
 #[derive(Serialize, Deserialize)]
 pub struct SetDescriptionQuery {
     poll_id: i32,
-    title: String,
+    description: String,
 }
 
 /// Query parameters for deleting a poll
@@ -227,7 +227,7 @@ pub mod poll_routes {
 
         if user.id == poll.user_id {
             generic_http_err!(
-                services::poll_service::set_description(&data.pool, query.poll_id, query.title.clone())
+                services::poll_service::set_description(&data.pool, query.poll_id, query.description.clone())
                 .await);
 
             Ok(success_json())
