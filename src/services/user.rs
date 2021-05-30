@@ -6,7 +6,7 @@ use sqlx::types::time::PrimitiveDateTime;
 use crate::util::DBPool;
 use crate::{generic_service_err, generic_err};
 use crate::services;
-use crate::services::Session;
+use crate::services::{Poll, Session};
 
 /// Representation of the user database table
 pub struct User {
@@ -268,6 +268,23 @@ pub mod user_service {
             "Failed to set user verified status");
 
         Ok(())
+    }
+
+    /// Returns all polls created by the user
+    /// 
+    /// # Arguments
+    /// 
+    /// * `poll` - The database pool
+    /// * `user_id` - The ID of the user
+    pub async fn get_user_polls(pool: &DBPool, user_id: i32) -> Result<Vec<Poll>> {
+        prune_unverified_users(pool).await?;
+
+        let polls = generic_service_err!(
+            sqlx::query_file_as!(Poll, "sql/user/get_user_polls.sql", user_id)
+            .fetch_all(pool).await,
+            "Failed to fetch user polls");
+
+        Ok(polls)
     }
 
     /// Deletes a user

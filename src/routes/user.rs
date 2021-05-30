@@ -2,6 +2,7 @@ use actix_web::{HttpRequest, HttpResponse, Result, web, get};
 use serde::{Serialize, Deserialize};
 use std::sync::{Mutex, Arc};
 use crate::{services, generic_http_err};
+use crate::routes::PollJSON;
 use crate::util::{AppData, ErrorJSON, success_json, get_user_by_session};
 
 /// Query parameters for getting a specific user's info
@@ -114,5 +115,30 @@ pub mod user_routes {
             .await);
 
         Ok(success_json())
+    }
+
+    /// Gets a user's polls
+    #[get("/get_user_polls")]
+    pub async fn get_user_polls(
+        req: HttpRequest,
+        app_data: web::Data<Arc<Mutex<AppData>>>
+    ) -> Result<HttpResponse> {
+        let data = app_data.lock().unwrap();
+
+        let user = get_user_by_session(&data.pool, req).await?;
+
+        let user_polls = generic_http_err!(
+            services::user_service::get_user_polls(&data.pool, user.id)
+            .await);
+
+        let polls: Vec<PollJSON> = user_polls.iter().map(|poll| PollJSON {
+            id: poll.id,
+            user_id: poll.user_id,
+            title: poll.title.clone(),
+            description: poll.description.clone(),
+            create_time: poll.create_time.timestamp()
+        }).collect();
+
+        Ok(HttpResponse::Ok().json(polls))
     }
 }
